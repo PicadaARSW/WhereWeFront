@@ -1,7 +1,9 @@
 // Adapted from https://reactnavigation.org/docs/auth-flow
 import React from "react";
-import { Alert, Button, StyleSheet, View } from "react-native";
+import { Alert, View,Image } from "react-native";
+import { Button, Card, Title, Paragraph } from "react-native-paper";
 import { AuthContext } from "../AuthContext";
+import styles from "../styles/SigninScreenStyles";
 
 export default class SignInScreen extends React.Component {
   static contextType = AuthContext;
@@ -17,7 +19,7 @@ export default class SignInScreen extends React.Component {
 
   componentDidMount() {
     this.props.navigation.setOptions({
-      title: "Please sign in",
+      title: "Registro de usuario",
       headerShown: true,
     });
   }
@@ -25,16 +27,22 @@ export default class SignInScreen extends React.Component {
   render() {
     return (
       <View style={styles.container}>
-        <Button title="Sign In" onPress={this._signInAsync} />
+        <Image source={require("../assets/background.jpg")} style={styles.backgroundImage} />
+        <Title style={styles.mainTitle}>Where We!📍</Title>
+        <Card style={styles.card}>
+          <Card.Content>
+            <Title style={styles.welcomeTitle}>Bienvenido</Title>
+            <Paragraph style={styles.paragraphText}>Registrate en WhereWe!</Paragraph>
+          </Card.Content>
+          <Card.Actions style={styles.buttonContainer}>
+            <View style={{ width: "100%", alignItems: "center" }}>
+            <Button mode="contained" style={styles.signInButton} onPress={this._signInAsync}>
+              Sign In
+            </Button>
+            </View>
+          </Card.Actions>
+        </Card>
       </View>
     );
   }
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});

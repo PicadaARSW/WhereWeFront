@@ -19,7 +19,7 @@ export default class SignInScreen extends React.Component {
 
   componentDidMount() {
     this.props.navigation.setOptions({
-      title: "Registro de usuario",
+      title: "Iniciar Sesión Usuario",
       headerShown: true,
     });
   }
@@ -32,12 +32,12 @@ export default class SignInScreen extends React.Component {
         <Card style={styles.card}>
           <Card.Content>
             <Title style={styles.welcomeTitle}>Bienvenido</Title>
-            <Paragraph style={styles.paragraphText}>Registrate en WhereWe!</Paragraph>
+            <Paragraph style={styles.paragraphText}>Inicio de Sesión en WhereWe!</Paragraph>
           </Card.Content>
           <Card.Actions style={styles.buttonContainer}>
             <View style={{ width: "100%", alignItems: "center" }}>
             <Button mode="contained" style={styles.signInButton} onPress={this._signInAsync}>
-              Sign In
+              Login
             </Button>
             </View>
           </Card.Actions>

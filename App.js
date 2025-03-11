@@ -3,10 +3,12 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { AuthManager } from "./auth/AuthManager";
 import { AuthContext } from "./AuthContext";
+import { UserContext } from "./UserContext";
 import SignInScreen from "./screens/SignInScreen";
 import MainScreen from "./MainScreen";
 import AuthLoadingScreen from "./screens/AuthLoadingScreen";
 import { GraphManager } from "./graph/GraphManager";
+import { UserProvider } from "./UserContext";
 
 const Stack = createStackNavigator();
 
@@ -45,6 +47,7 @@ export default function App() {
       isLoading: true,
       isSignOut: false,
       userToken: null,
+      user: null,
     }
   );
 
@@ -71,8 +74,9 @@ export default function App() {
           dispatch({ type: "SIGN_IN", token });
 
           const user = await GraphManager.getUserAsync();
+          dispatch({ type: "UPDATE_USER", user });
         } catch (error) {
-          throw error; // Propagar error para que SignInScreen lo capture
+          throw error;
         }
       },
       signOut: async () => {
@@ -85,17 +89,19 @@ export default function App() {
 
   return (
     <AuthContext.Provider value={authContext}>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {state.isLoading ? (
-            <Stack.Screen name="Loading" component={AuthLoadingScreen} />
-          ) : state.userToken == null ? (
-            <Stack.Screen name="SignIn" component={SignInScreen} />
-          ) : (
-            <Stack.Screen name="Main" component={MainScreen} />
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
+      <UserProvider>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {state.isLoading ? (
+              <Stack.Screen name="Loading" component={AuthLoadingScreen} />
+            ) : state.userToken == null ? (
+              <Stack.Screen name="SignIn" component={SignInScreen} />
+            ) : (
+              <Stack.Screen name="Main" component={MainScreen} />
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </UserProvider>
     </AuthContext.Provider>
   );
 }

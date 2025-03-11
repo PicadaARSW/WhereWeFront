@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Platform,
@@ -7,30 +7,42 @@ import {
   View,
 } from "react-native";
 import { UserContext } from "../UserContext";
-
-import { useEffect } from "react";
+import { GraphManager } from "../graph/GraphManager";
 
 const HomeComponent = () => {
-  const userContext = React.useContext(UserContext);
+  const userContext = useContext(UserContext);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
-      const user = await GraphManager.getUserAsync();
-      UserContext((prevState) => ({ ...prevState, ...user }));
+      setLoading(true);
+      const fetchedUser = await GraphManager.getUserAsync();
+      if (fetchedUser) {
+        setUser(fetchedUser);
+      }
+      setLoading(false);
     };
 
     fetchUser();
-  }, [userContext.userToken]);
+  }, []);
 
   return (
     <View style={styles.container}>
-      <ActivityIndicator
-        color={Platform.OS === "android" ? "#276b80" : undefined}
-        animating={userContext.userLoading}
-        size="large"
-      />
-      {userContext.userLoading ? null : (
-        <Text>Hello {userContext.userFirstName}!</Text>
+      {loading ? (
+        <ActivityIndicator
+          color={Platform.OS === "android" ? "#276b80" : undefined}
+          size="large"
+        />
+      ) : (
+        <>
+          <Text style={styles.text}>
+            Hola {user?.userFirstName || "Usuario"}!
+          </Text>
+          <Text style={styles.text}>
+            Correo: {user?.userEmail || "No disponible"}
+          </Text>
+        </>
       )}
     </View>
   );

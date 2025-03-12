@@ -45,7 +45,7 @@ export class AuthManager {
         discovery
       );
 
-      if (!tokenResponse || !tokenResponse.accessToken) {
+      if (!tokenResponse?.accessToken) {
         console.error("Token exchange failed.", tokenResponse);
         throw new Error("Failed to obtain access token.");
       }
@@ -102,7 +102,7 @@ export class AuthManager {
           discovery
         );
 
-        if (!refreshResult || !refreshResult.accessToken) {
+        if (!refreshResult?.accessToken) {
           console.error("Failed to refresh access token.", refreshResult);
           return null;
         }

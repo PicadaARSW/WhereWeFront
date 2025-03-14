@@ -71,7 +71,7 @@ const SignInScreen = (props) => {
         source={require("../assets/background.jpg")}
         style={styles.backgroundImage}
       />
-      <Title style={styles.mainTitle}>Where We!📍</Title>
+      <Title style={styles.mainTitle}>Where We!</Title>
       <Card style={styles.card}>
         <Card.Content>
           <Title style={styles.welcomeTitle}>Bienvenido</Title>

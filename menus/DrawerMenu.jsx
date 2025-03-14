@@ -60,7 +60,12 @@ export default function DrawerMenuContent() {
       <Drawer.Screen
         name="Home"
         component={HomeScreen}
-        options={{ drawerLabel: "Home", headerTitle: "Welcome" }}
+        options={{ 
+        drawerLabel: "Inicio", 
+        headerTitle: "Bienvenido",
+        headerStyle: { backgroundColor: "#2ab4ab" }, 
+        headerTintColor: "white" 
+      }}
       />
     </Drawer.Navigator>
   );

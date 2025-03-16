@@ -5,14 +5,14 @@ const { height } = Dimensions.get("window");
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF", 
+    backgroundColor: "#FFFFFF",
     alignItems: "center",
     paddingTop: 20,
   },
   infoContainer: {
-    height: height * 0.4, 
+    height: height * 0.4,
     width: "90%",
-    backgroundColor: "#F8D9D6", 
+    backgroundColor: "#F8D9D6",
     padding: 20,
     marginTop: 20,
     borderRadius: 20,
@@ -21,7 +21,7 @@ export default StyleSheet.create({
     elevation: 5,
   },
   userIcon: {
-    fontSize: 50, 
+    fontSize: 50,
     color: "#276b80",
   },
   userText: {
@@ -46,7 +46,7 @@ export default StyleSheet.create({
     marginBottom: 10,
   },
   joinGroup: {
-    backgroundColor: "#2ab4ab", 
+    backgroundColor: "#2ab4ab",
     paddingVertical: 15,
     paddingHorizontal: 25,
     borderRadius: 30,
@@ -62,7 +62,7 @@ export default StyleSheet.create({
     textAlign: "center",
   },
   createContainer: {
-    height: height * 0.4, 
+    height: height * 0.4,
     width: "90%",
     backgroundColor: "#F8D9D6",
     padding: 20,
@@ -77,7 +77,7 @@ export default StyleSheet.create({
     color: "#276b80",
   },
   createButton: {
-    backgroundColor: "#2ab4ab", 
+    backgroundColor: "#2ab4ab",
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 30,
@@ -91,5 +91,47 @@ export default StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     textAlign: "center",
+  },
+  /* MODAL STYLES */
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.5)", // Semi-transparente para resaltar el modal
+  },
+  modalContent: {
+    width: "80%",
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 15,
+    color: "#276b80",
+    textAlign: "center",
+  },
+  input: {
+    width: "90%",
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    marginBottom: 15,
+    fontSize: 16,
+    color: "#333",
+  },
+  button: {
+    backgroundColor: "#2ab4ab",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    alignItems: "center",
+    width: "80%",
+    marginTop: 10,
   },
 });

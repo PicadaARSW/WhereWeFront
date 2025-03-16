@@ -9,6 +9,8 @@ import MainScreen from "./MainScreen";
 import AuthLoadingScreen from "./screens/AuthLoadingScreen";
 import { GraphManager } from "./graph/GraphManager";
 import { UserProvider } from "./UserContext";
+import GroupsScreen from "./screens/GroupsScreen";
+import GroupDetailScreen from "./screens/GroupDetailScreen";
 
 const Stack = createStackNavigator();
 
@@ -97,7 +99,14 @@ export default function App() {
             ) : state.userToken == null ? (
               <Stack.Screen name="SignIn" component={SignInScreen} />
             ) : (
-              <Stack.Screen name="Main" component={MainScreen} />
+              <>
+                <Stack.Screen name="Main" component={MainScreen} />
+                <Stack.Screen name="Groups" component={GroupsScreen} />
+                <Stack.Screen
+                  name="GroupDetailScreen"
+                  component={GroupDetailScreen}
+                />
+              </>
             )}
           </Stack.Navigator>
         </NavigationContainer>

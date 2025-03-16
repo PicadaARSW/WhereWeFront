@@ -1,6 +1,15 @@
 import React, { useContext, useEffect, useState } from "react";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import { ActivityIndicator,Platform,Text,View,TouchableOpacity,} from "react-native";
+import {
+  ActivityIndicator,
+  Platform,
+  Text,
+  View,
+  TouchableOpacity,
+  TextInput,
+  Modal,
+  Alert,
+} from "react-native";
 import { UserContext } from "../UserContext";
 import { GraphManager } from "../graph/GraphManager";
 import styles from "../styles/HomeScreenStyles";
@@ -9,6 +18,12 @@ const HomeComponent = () => {
   const userContext = useContext(UserContext);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  // Estado para el modal de creación de grupo
+  const [nameGroup, setNameGroup] = useState("");
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  // Estado para el modal de unirse a un grupo
+  const [groupCode, setGroupCode] = useState("");
+  const [isJoinModalVisible, setIsJoinModalVisible] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -23,45 +38,199 @@ const HomeComponent = () => {
     fetchUser();
   }, []);
 
+  /** Función para crear un grupo */
+  const handleCreateGroup = async () => {
+    if (!nameGroup) {
+      alert("Por favor, ingrese un nombre para el grupo");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://192.168.50.218:8085/api/v1/groups", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          admin: user?.id,
+          nameGroup: nameGroup,
+        }),
+      });
+
+      if (response.ok) {
+        alert("Grupo creado exitosamente");
+        setIsModalVisible(false); // Close the modal
+        setNameGroup(""); // Clear the input field
+      } else {
+        alert("Hubo un error al crear el grupo.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Hubo un error al crear el grupo.");
+    }
+  };
+
+  /** Función para unirse a un grupo */
+  const handleJoinGroup = async () => {
+    if (!groupCode) {
+      Alert.alert("Error", "Por favor, ingrese el código del grupo.");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `http://192.168.50.218:8085/api/v1/groups/join/${groupCode}/${user?.id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.ok) {
+        Alert.alert("Éxito", "Te has unido al grupo exitosamente.");
+        setIsJoinModalVisible(false);
+        setGroupCode("");
+      } else {
+        const errorMessage = await response.text();
+        if (response.status === 500) {
+          if (errorMessage.includes("El usuario ya pertenece al grupo")) {
+            Alert.alert("Información", "Ya perteneces a este grupo.");
+          } else if (errorMessage.includes("El grupo no existe")) {
+            Alert.alert("Error", "El grupo no existe.");
+          } else {
+            Alert.alert("Error", "Ocurrió un error inesperado.");
+          }
+        } else {
+          Alert.alert("Error", "No se pudo unir al grupo.");
+        }
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      Alert.alert("Error", "Hubo un problema al conectarse con el servidor.");
+    }
+  };
+
   return (
     <View style={styles.container}>
-    {loading ? (
-      <ActivityIndicator
-        color={Platform.OS === "android" ? "#276b80" : undefined}
-        size="large"
-      />
-    ) : (
-      <>
-        {/* Información - Unirse a un grupo */}
-        <View style={styles.infoContainer}>
-          <Icon name="account-circle" style={styles.userIcon} />
-          <Text style={styles.userText}>Hola, {user?.userFirstName || "Usuario"}!</Text>
-          <Text style={styles.email}>{user?.userEmail || "No disponible"}</Text>
-          <View style={styles.separator} />
-          <Text style={styles.description}>
-            Encuentra y únete a grupos para compartir tu ubicación en tiempo real.
-          </Text>
-          <TouchableOpacity style={styles.joinGroup}>
-            <Text style={styles.buttonText}>Únete a un grupo</Text>
-          </TouchableOpacity>
-        </View>
+      {loading ? (
+        <ActivityIndicator
+          color={Platform.OS === "android" ? "#276b80" : undefined}
+          size="large"
+        />
+      ) : (
+        <>
+          {/* Información - Unirse a un grupo */}
+          <View style={styles.infoContainer}>
+            <Icon name="account-circle" style={styles.userIcon} />
+            <Text style={styles.userText}>
+              Hola, {user?.userFirstName || "Usuario"}!
+            </Text>
+            <Text style={styles.email}>
+              {user?.userEmail || "No disponible"}
+            </Text>
+            <View style={styles.separator} />
+            <Text style={styles.description}>
+              Encuentra y únete a grupos para compartir tu ubicación en tiempo
+              real.
+            </Text>
+            <TouchableOpacity
+              style={styles.joinGroup}
+              onPress={() => setIsJoinModalVisible(true)}
+            >
+              <Text style={styles.buttonText}>Únete a un grupo</Text>
+            </TouchableOpacity>
+          </View>
 
-        {/* Crear un grupo */}
-        <View style={styles.createContainer}>
-          <Icon name="account-group" style={styles.groupIcon} />
-          <Text style={styles.userText}>Crea un grupo</Text>
-          <View style={styles.separator} />
-          <Text style={styles.description}>
-            Comparte tu ubicación con amigos o familiares creando un grupo privado.
-          </Text>
-          <TouchableOpacity style={styles.createButton}>
-            <Text style={styles.createButtonText}>Crea un grupo</Text>
-          </TouchableOpacity>
-        </View>
-      </>
-    )}
-  </View>
-);
+          {/* Crear un grupo */}
+          <View style={styles.createContainer}>
+            <Icon name="account-group" style={styles.groupIcon} />
+            <Text style={styles.userText}>Crea un grupo</Text>
+            <View style={styles.separator} />
+            <Text style={styles.description}>
+              Comparte tu ubicación con amigos o familiares creando un grupo
+              privado.
+            </Text>
+            <TouchableOpacity
+              style={styles.createButton}
+              onPress={() => setIsModalVisible(true)}
+            >
+              <Text style={styles.createButtonText}>Crea un grupo</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Modal para unirse a un grupo */}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={isJoinModalVisible}
+            onRequestClose={() => setIsJoinModalVisible(false)}
+          >
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>
+                  Ingresa el código del grupo
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Código del grupo"
+                  value={groupCode}
+                  onChangeText={setGroupCode}
+                />
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={handleJoinGroup}
+                >
+                  <Text style={styles.buttonText}>Unirse</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => setIsJoinModalVisible(false)}
+                >
+                  <Text style={styles.buttonText}>Cancelar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+
+          {/* Modal para crear un grupo */}
+          <Modal
+            animationType="slide"
+            transparent={true}
+            visible={isModalVisible}
+            onRequestClose={() => setIsModalVisible(false)}
+          >
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>
+                  Ingresa el nombre del grupo
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Nombre del grupo"
+                  value={nameGroup}
+                  onChangeText={setNameGroup}
+                />
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={handleCreateGroup}
+                >
+                  <Text style={styles.buttonText}>Crear Grupo</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => setIsModalVisible(false)} // Close modal without creating
+                >
+                  <Text style={styles.buttonText}>Cancelar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        </>
+      )}
+    </View>
+  );
 };
 
 export default function HomeScreen() {

@@ -10,6 +10,7 @@ import {
 import { AuthContext } from "../AuthContext";
 import { UserContext } from "../UserContext";
 import HomeScreen from "../screens/HomeScreen";
+import GroupsScreen from "../screens/GroupsScreen";
 import { GraphManager } from "../graph/GraphManager";
 
 const Drawer = createDrawerNavigator();
@@ -60,12 +61,12 @@ export default function DrawerMenuContent() {
       <Drawer.Screen
         name="Home"
         component={HomeScreen}
-        options={{ 
-        drawerLabel: "Inicio", 
-        headerTitle: "Bienvenido",
-        headerStyle: { backgroundColor: "#2ab4ab" }, 
-        headerTintColor: "white" 
-      }}
+        options={{ drawerLabel: "Home", headerTitle: "Welcome" }}
+      />
+      <Drawer.Screen
+        name="Groups"
+        component={GroupsScreen} // Se añadió la pantalla de grupos
+        options={{ drawerLabel: "Mis Grupos", headerTitle: "Mis Grupos" }} // Configuración de la nueva pantalla
       />
     </Drawer.Navigator>
   );

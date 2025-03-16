@@ -16,11 +16,11 @@ const SignInScreen = (props) => {
       await signIn();
 
       const user = await GraphManager.getUserAsync(); // Asegúrate de obtener los detalles del usuario de GraphManager
-      console.log("Usuario:", user);
 
       // Actualizar el contexto con la información del usuario
       setUser({
         userLoading: false,
+        id: user.id,
         userFirstName: user.userFirstName,
         userFullName: user.userFullName,
         userEmail: user.userEmail,
@@ -30,16 +30,18 @@ const SignInScreen = (props) => {
 
       // Enviar la información del usuario al servicio de backend
       const userPayload = {
+        id: user.id,
         userFirstName: user.userFirstName,
         userFullName: user.userFullName,
         userEmail: user.userEmail,
         userTimeZone: user.userTimeZone,
       };
 
+      console.log("Usuario:", userPayload);
       // Realiza la llamada POST al backend para guardar el usuario
       try {
         const response = await fetch(
-          "http://192.168.50.219:8084/api/v1/users",
+          "http://192.168.50.218:8084/api/v1/users",
           {
             method: "POST",
             headers: {

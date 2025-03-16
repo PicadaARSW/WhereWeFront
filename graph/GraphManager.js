@@ -16,10 +16,13 @@ export class GraphManager {
     try {
       const user = await graphClient
         .api("/me")
-        .select("displayName,givenName,mail,mailboxSettings,userPrincipalName")
+        .select(
+          "displayName,givenName,mail,mailboxSettings,userPrincipalName,id"
+        )
         .get();
 
       return {
+        id: user.id,
         userFirstName: user.givenName,
         userFullName: user.displayName,
         userEmail: user.mail || user.userPrincipalName,

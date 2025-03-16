@@ -13,10 +13,10 @@ export default StyleSheet.create({
     resizeMode: "cover",
   },
   mainTitle: {
-    fontSize: 55, 
+    fontSize: 55,
     fontWeight: "bold",
     color: "#003366",
-    marginTop: 150, 
+    marginTop: 150,
     textAlign: "center",
     lineHeight: 55,
   },
@@ -33,7 +33,7 @@ export default StyleSheet.create({
     elevation: 5,
     backgroundColor: "rgba(255, 255, 255, 0.85)",
     position: "absolute",
-    bottom: 100, 
+    bottom: 100,
   },
   signInButton: {
     backgroundColor: "#003366",

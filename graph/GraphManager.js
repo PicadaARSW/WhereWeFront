@@ -1,6 +1,5 @@
 import { Client } from "@microsoft/microsoft-graph-client";
 import { GraphAuthProvider } from "./GraphAuthProvider";
-import { ApiClient } from "../api/ApiClient";
 
 // Set the authProvider to an instance
 // of GraphAuthProvider

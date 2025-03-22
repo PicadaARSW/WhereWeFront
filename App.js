@@ -11,6 +11,7 @@ import { GraphManager } from "./graph/GraphManager";
 import { UserProvider } from "./UserContext";
 import GroupsScreen from "./screens/GroupsScreen";
 import GroupDetailScreen from "./screens/GroupDetailScreen";
+import GroupMapScreen from "./screens/GroupMapScreen";
 
 const Stack = createStackNavigator();
 
@@ -105,6 +106,10 @@ export default function App() {
                 <Stack.Screen
                   name="GroupDetailScreen"
                   component={GroupDetailScreen}
+                />
+                <Stack.Screen
+                  name="GroupMapScreen"
+                  component={GroupMapScreen}
                 />
               </>
             )}

@@ -7,42 +7,49 @@ import {
   ScrollView,
 } from "react-native";
 import UserItem from "../components/UserItem";
+import { Button } from "react-native-paper";
+import * as Location from "expo-location";
+import { useNavigation } from "@react-navigation/native"; // Importar useNavigation
 
 const GroupDetailScreen = ({ route }) => {
+  const navigation = useNavigation(); // Usar el hook useNavigation
   const { groupId } = route.params;
   const [groupDetails, setGroupDetails] = useState(null);
   const [membersDetails, setMembersDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [adminName, setAdminName] = useState("");
-  const [loadingMembers, setLoadingMembers] = useState(true); // Estado adicional para el loading de los miembros
+  const [loadingMembers, setLoadingMembers] = useState(true);
+  const [socket, setSocket] = useState(null);
+  const [locations, setLocations] = useState([]);
+  const [permissionStatus, setPermissionStatus] = useState(null);
 
-  // useEffect para obtener los detalles del grupo
+  // Obtener detalles del grupo
   useEffect(() => {
     const fetchGroupDetails = async () => {
       try {
         const groupResponse = await fetch(
-          `http://192.168.50.218:8085/api/v1/groups/${groupId}`
+          `http://192.168.1.21:8085/api/v1/groups/${groupId}`
         );
         const groupData = await groupResponse.json();
         setGroupDetails(groupData);
       } catch (error) {
         console.error(error);
       } finally {
-        setLoading(false); // Dejamos de mostrar el loading una vez obtenemos los detalles del grupo
+        setLoading(false);
       }
     };
 
     fetchGroupDetails();
   }, [groupId]);
 
-  // useEffect para obtener los detalles de los miembros
+  // Obtener detalles de los miembros
   useEffect(() => {
     const fetchMembersDetails = async () => {
       if (groupDetails && groupDetails.members) {
         try {
           const memberPromises = groupDetails.members.map(async (memberId) => {
             const userResponse = await fetch(
-              `http://192.168.50.218:8084/api/v1/users/${memberId}`
+              `http://192.168.1.21:8084/api/v1/users/${memberId}`
             );
             const userData = await userResponse.json();
             return userData;
@@ -53,21 +60,21 @@ const GroupDetailScreen = ({ route }) => {
         } catch (error) {
           console.error(error);
         } finally {
-          setLoadingMembers(false); // Dejamos de mostrar el loading una vez obtenemos los detalles de los miembros
+          setLoadingMembers(false);
         }
       }
     };
 
     fetchMembersDetails();
-  }, [groupDetails]); // Dependemos de groupDetails para hacer la consulta de los miembros
+  }, [groupDetails]);
 
-  // useEffect para obtener los detalles del admin
+  // Obtener detalles del admin
   useEffect(() => {
     const fetchAdminDetails = async () => {
       if (groupDetails) {
         try {
           const adminResponse = await fetch(
-            `http://192.168.50.218:8084/api/v1/users/${groupDetails.admin}`
+            `http://192.168.1.21:8084/api/v1/users/${groupDetails.admin}`
           );
           const adminData = await adminResponse.json();
 
@@ -79,7 +86,17 @@ const GroupDetailScreen = ({ route }) => {
     };
 
     fetchAdminDetails();
-  }, [groupDetails]); // Dependemos de groupDetails para hacer la consulta de los miembros
+  }, [groupDetails]);
+
+  // Solicitar permisos de geolocalización
+  const requestLocationPermission = async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    setPermissionStatus(status);
+  };
+
+  useEffect(() => {
+    requestLocationPermission(); // Solicitar permiso al cargar el componente
+  }, []);
 
   return (
     <ScrollView style={styles.container}>
@@ -111,6 +128,13 @@ const GroupDetailScreen = ({ route }) => {
                   <UserItem key={user.id} user={user} />
                 ))
               )}
+              <Button
+                style={styles.buttonMap}
+                title="Empezar a ver mapa"
+                onPress={() =>
+                  navigation.navigate("GroupMapScreen", { groupId: groupId })
+                }
+              />
             </>
           )}
         </View>
@@ -168,6 +192,10 @@ const styles = StyleSheet.create({
     color: "#276b80",
     marginTop: 20,
     marginBottom: 10,
+  },
+  buttonMap: {
+    color: "white",
+    backgroundColor: "#276b80",
   },
 });
 

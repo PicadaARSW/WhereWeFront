@@ -40,16 +40,13 @@ const SignInScreen = (props) => {
       console.log("Usuario:", userPayload);
       // Realiza la llamada POST al backend para guardar el usuario
       try {
-        const response = await fetch(
-          "http://192.168.50.218:8084/api/v1/users",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(userPayload),
-          }
-        );
+        const response = await fetch("http://192.168.1.21:8084/api/v1/users", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userPayload),
+        });
 
         if (!response.ok) {
           throw new Error(`Error en la petición: ${response.status}`);

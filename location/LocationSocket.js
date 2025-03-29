@@ -7,34 +7,33 @@ class LocationSocket {
     this.stompClient = null;
     this.connected = false;
     this.locationSubscription = null;
+    this.favoritePlaceSubscription = null;
+    this.favoritePlaceEditedSubscription = null;
+    this.favoritePlaceDeletedSubscription = null;
     this.onLocationReceived = null;
+    this.onFavoritePlaceReceived = null;
+    this.onFavoritePlaceEdited = null;
+    this.onFavoritePlaceDeleted = null;
   }
 
   async connect() {
     return new Promise((resolve, reject) => {
       try {
-        // Create a new SockJS instance connecting to your backend
-        const socket = new SockJS("http://192.168.1.21:8086/ws");
-
-        // Create a STOMP client over the SockJS socket
+        const socket = new SockJS("http://192.168.1.8:8086/ws");
         this.stompClient = Stomp.over(socket);
 
-        // Connect to the STOMP server
         this.stompClient.connect(
-          {}, // headers (empty in this case)
+          {},
           () => {
             console.log("Connected to STOMP server");
             this.connected = true;
 
-            // Subscribe to the group's location topic
             this.locationSubscription = this.stompClient.subscribe(
               `/topic/location/${this.groupId}`,
               (message) => {
                 try {
                   const locationData = JSON.parse(message.body);
                   console.log("Location received:", locationData);
-
-                  // Call the callback if defined
                   if (this.onLocationReceived) {
                     this.onLocationReceived(locationData);
                   }
@@ -59,7 +58,6 @@ class LocationSocket {
     });
   }
 
-  // Send location to the server
   sendLocation(locationData) {
     if (!this.connected || !this.stompClient) {
       console.error("Not connected to STOMP server");
@@ -68,7 +66,7 @@ class LocationSocket {
 
     try {
       this.stompClient.send(
-        "/app/location", // This should match your @MessageMapping in Spring
+        "/app/location",
         {},
         JSON.stringify(locationData)
       );
@@ -80,15 +78,136 @@ class LocationSocket {
     }
   }
 
-  // Set callback for when a location is received
   setLocationCallback(callback) {
     this.onLocationReceived = callback;
   }
 
-  // Disconnect from the STOMP server
+  sendFavoritePlace(placeData) {
+    if (!this.connected || !this.stompClient) {
+      console.error("Not connected to STOMP server");
+      return false;
+    }
+
+    try {
+      this.stompClient.send(
+        "/app/addFavoritePlace",
+        {},
+        JSON.stringify(placeData)
+      );
+      console.log("Favorite place sent:", placeData);
+      return true;
+    } catch (error) {
+      console.error("Error sending favorite place:", error);
+      return false;
+    }
+  }
+
+  sendEditFavoritePlace(placeData) {
+    if (!this.connected || !this.stompClient) {
+      console.error("Not connected to STOMP server");
+      return false;
+    }
+
+    try {
+      this.stompClient.send(
+        "/app/editFavoritePlace",
+        {},
+        JSON.stringify(placeData)
+      );
+      console.log("Edit favorite place sent:", placeData);
+      return true;
+    } catch (error) {
+      console.error("Error sending edit favorite place:", error);
+      return false;
+    }
+  }
+
+  sendDeleteFavoritePlace(placeData) {
+    if (!this.connected || !this.stompClient) {
+      console.error("Not connected to STOMP server");
+      return false;
+    }
+
+    try {
+      this.stompClient.send(
+        "/app/deleteFavoritePlace",
+        {},
+        JSON.stringify(placeData)
+      );
+      console.log("Delete favorite place sent:", placeData);
+      return true;
+    } catch (error) {
+      console.error("Error sending delete favorite place:", error);
+      return false;
+    }
+  }
+
+  subscribeToFavoritePlaces(callback) {
+    if (!this.connected || !this.stompClient) {
+      console.error("Not connected to STOMP server");
+      return;
+    }
+
+    this.favoritePlaceSubscription = this.stompClient.subscribe(
+      `/topic/favoritePlace/${this.groupId}`,
+      (message) => {
+        try {
+          const placeData = JSON.parse(message.body);
+          console.log("Favorite place received:", placeData);
+          if (callback) callback(placeData);
+        } catch (error) {
+          console.error("Error parsing favorite place data:", error);
+        }
+      }
+    );
+
+    this.favoritePlaceEditedSubscription = this.stompClient.subscribe(
+      `/topic/favoritePlaceEdited/${this.groupId}`,
+      (message) => {
+        try {
+          const placeData = JSON.parse(message.body);
+          console.log("Favorite place edited:", placeData);
+          if (this.onFavoritePlaceEdited) this.onFavoritePlaceEdited(placeData);
+        } catch (error) {
+          console.error("Error parsing edited favorite place data:", error);
+        }
+      }
+    );
+
+    this.favoritePlaceDeletedSubscription = this.stompClient.subscribe(
+      `/topic/favoritePlaceDeleted/${this.groupId}`,
+      (message) => {
+        try {
+          const placeData = JSON.parse(message.body);
+          console.log("Favorite place deleted:", placeData);
+          if (this.onFavoritePlaceDeleted) this.onFavoritePlaceDeleted(placeData);
+        } catch (error) {
+          console.error("Error parsing deleted favorite place data:", error);
+        }
+      }
+    );
+  }
+
+  setFavoritePlaceEditedCallback(callback) {
+    this.onFavoritePlaceEdited = callback;
+  }
+
+  setFavoritePlaceDeletedCallback(callback) {
+    this.onFavoritePlaceDeleted = callback;
+  }
+
   disconnect() {
     if (this.locationSubscription) {
       this.locationSubscription.unsubscribe();
+    }
+    if (this.favoritePlaceSubscription) {
+      this.favoritePlaceSubscription.unsubscribe();
+    }
+    if (this.favoritePlaceEditedSubscription) {
+      this.favoritePlaceEditedSubscription.unsubscribe();
+    }
+    if (this.favoritePlaceDeletedSubscription) {
+      this.favoritePlaceDeletedSubscription.unsubscribe();
     }
 
     if (this.stompClient && this.connected) {

@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-const BASEURL = "http://192.168.1.21";
+const BASEURL = "http://192.168.1.8";
 export const ApiClient = async (url, method = "GET", body = null) => {
   try {
     // Obtener el token de almacenamiento local

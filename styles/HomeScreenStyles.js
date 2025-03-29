@@ -12,7 +12,7 @@ export default StyleSheet.create({
   infoContainer: {
     height: height * 0.4,
     width: "90%",
-    backgroundColor: "#F8D9D6",
+    backgroundColor: "#C5E6D5",
     padding: 20,
     marginTop: 20,
     borderRadius: 20,
@@ -22,31 +22,31 @@ export default StyleSheet.create({
   },
   userIcon: {
     fontSize: 50,
-    color: "#276b80",
+    color: "#276B80",
   },
   userText: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#276b80",
+    color: "#276B80",
   },
   email: {
-    color: "#6c757d",
+    color: "#333333",
     fontSize: 16,
   },
   separator: {
     width: "80%",
     height: 1,
-    backgroundColor: "#ccc",
+    backgroundColor: "#a3a3a3",
     marginVertical: 10,
   },
   description: {
     fontSize: 14,
-    color: "#6c757d",
+    color: "#333333",
     textAlign: "center",
     marginBottom: 10,
   },
   joinGroup: {
-    backgroundColor: "#2ab4ab",
+    backgroundColor: "#276B80",
     paddingVertical: 15,
     paddingHorizontal: 25,
     borderRadius: 30,
@@ -64,7 +64,7 @@ export default StyleSheet.create({
   createContainer: {
     height: height * 0.4,
     width: "90%",
-    backgroundColor: "#F8D9D6",
+    backgroundColor: "#C5E6D5",
     padding: 20,
     marginTop: 20,
     borderRadius: 20,
@@ -74,10 +74,10 @@ export default StyleSheet.create({
   },
   groupIcon: {
     fontSize: 50,
-    color: "#276b80",
+    color: "#276B80",
   },
   createButton: {
-    backgroundColor: "#2ab4ab",
+    backgroundColor: "#276B80",
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 30,
@@ -112,7 +112,7 @@ export default StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 15,
-    color: "#276b80",
+    color: "#276B80",
     textAlign: "center",
   },
   input: {
@@ -126,7 +126,7 @@ export default StyleSheet.create({
     color: "#333",
   },
   button: {
-    backgroundColor: "#2ab4ab",
+    backgroundColor: "#276B80",
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 25,

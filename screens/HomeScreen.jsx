@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import {
   ActivityIndicator,
@@ -8,11 +8,165 @@ import {
   TouchableOpacity,
   TextInput,
   Modal,
-  Alert,
+  StyleSheet,
+  Dimensions,
+  Animated,
 } from "react-native";
 import { UserContext } from "../UserContext";
 import { GraphManager } from "../graph/GraphManager";
 import styles from "../styles/HomeScreenStyles";
+
+// Custom Alert Component with Animated Entrance
+const CustomAlert = ({ 
+  visible, 
+  type = 'default', 
+  title, 
+  message, 
+  onClose 
+}) => {
+  const screenWidth = Dimensions.get('window').width;
+  const animatedValue = useRef(new Animated.Value(screenWidth)).current;
+
+  // Animate the alert sliding in from the right
+  useEffect(() => {
+    if (visible) {
+      Animated.spring(animatedValue, {
+        toValue: 0,
+        friction: 6,
+        tension: 40,
+        useNativeDriver: true
+      }).start();
+    }
+  }, [visible]);
+
+  // Close animation
+  const handleClose = () => {
+    Animated.timing(animatedValue, {
+      toValue: screenWidth,
+      duration: 300,
+      useNativeDriver: true
+    }).start(onClose);
+  };
+
+  // Alert configurations
+  const alertConfigs = {
+    default: {
+      backgroundColor: '#f0f0f0',
+      titleColor: '#333',
+      messageColor: '#666',
+      iconName: 'information-outline',
+      iconColor: '#3498db'
+    },
+    success: {
+      backgroundColor: '#e8f5e9',
+      titleColor: '#2e7d32',
+      messageColor: '#388e3c',
+      iconName: 'check-circle-outline',
+      iconColor: '#2e7d32'
+    },
+    error: {
+      backgroundColor: '#ffebee',
+      titleColor: '#d32f2f',
+      messageColor: '#f44336',
+      iconName: 'alert-circle-outline',
+      iconColor: '#d32f2f'
+    },
+    warning: {
+      backgroundColor: '#fff3e0',
+      titleColor: '#f57c00',
+      messageColor: '#ff9800',
+      iconName: 'alert-outline',
+      iconColor: '#f57c00'
+    }
+  };
+
+  const config = alertConfigs[type] || alertConfigs.default;
+
+  return visible ? (
+    <Animated.View 
+      style={[
+        alertStyles.container, 
+        { 
+          backgroundColor: config.backgroundColor,
+          transform: [{ translateX: animatedValue }]
+        }
+      ]}
+    >
+      <View style={alertStyles.contentContainer}>
+        <Icon 
+          name={config.iconName} 
+          size={40} 
+          color={config.iconColor} 
+          style={alertStyles.icon}
+        />
+        <View style={alertStyles.textContainer}>
+          <Text 
+            style={[
+              alertStyles.titleText, 
+              { color: config.titleColor }
+            ]}
+          >
+            {title}
+          </Text>
+          <Text 
+            style={[
+              alertStyles.messageText, 
+              { color: config.messageColor }
+            ]}
+          >
+            {message}
+          </Text>
+        </View>
+        <TouchableOpacity 
+          style={alertStyles.closeButton} 
+          onPress={handleClose}
+        >
+          <Icon name="close" size={24} color="#888" />
+        </TouchableOpacity>
+      </View>
+    </Animated.View>
+  ) : null;
+};
+
+// Alert Styles
+const alertStyles = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    top: 50,
+    left: 0,
+    right: 0,
+    marginHorizontal: 20,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    zIndex: 1000,
+  },
+  contentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+  },
+  icon: {
+    marginRight: 15,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  titleText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  messageText: {
+    fontSize: 14,
+  },
+  closeButton: {
+    padding: 10,
+  },
+});
 
 const HomeComponent = () => {
   const userContext = useContext(UserContext);
@@ -24,6 +178,14 @@ const HomeComponent = () => {
   // Estado para el modal de unirse a un grupo
   const [groupCode, setGroupCode] = useState("");
   const [isJoinModalVisible, setIsJoinModalVisible] = useState(false);
+  
+  // State for custom alert
+  const [alert, setAlert] = useState({
+    visible: false,
+    type: 'default',
+    title: '',
+    message: ''
+  });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -41,12 +203,17 @@ const HomeComponent = () => {
   /** Función para crear un grupo */
   const handleCreateGroup = async () => {
     if (!nameGroup) {
-      alert("Por favor, ingrese un nombre para el grupo");
+      setAlert({
+        visible: true,
+        type: 'warning',
+        title: 'Campos Incompletos',
+        message: 'Por favor, ingrese un nombre para el grupo'
+      });
       return;
     }
 
     try {
-      const response = await fetch("http://192.168.1.21:8085/api/v1/groups", {
+      const response = await fetch("http://192.168.1.8:8085/api/v1/groups", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -58,28 +225,48 @@ const HomeComponent = () => {
       });
 
       if (response.ok) {
-        alert("Grupo creado exitosamente");
-        setIsModalVisible(false); // Close the modal
-        setNameGroup(""); // Clear the input field
+        setAlert({
+          visible: true,
+          type: 'success',
+          title: 'Grupo Creado',
+          message: 'Grupo creado exitosamente'
+        });
+        setIsModalVisible(false);
+        setNameGroup("");
       } else {
-        alert("Hubo un error al crear el grupo.");
+        setAlert({
+          visible: true,
+          type: 'error',
+          title: 'Error',
+          message: 'Hubo un error al crear el grupo.'
+        });
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Hubo un error al crear el grupo.");
+      setAlert({
+        visible: true,
+        type: 'error',
+        title: 'Error de Conexión',
+        message: 'Hubo un problema al conectarse con el servidor.'
+      });
     }
   };
 
   /** Función para unirse a un grupo */
   const handleJoinGroup = async () => {
     if (!groupCode) {
-      Alert.alert("Error", "Por favor, ingrese el código del grupo.");
+      setAlert({
+        visible: true,
+        type: 'warning',
+        title: 'Campos Incompletos',
+        message: 'Por favor, ingrese el código del grupo.'
+      });
       return;
     }
 
     try {
       const response = await fetch(
-        `http://192.168.1.21:8085/api/v1/groups/join/${groupCode}/${user?.id}`,
+        `http://192.168.1.8:8085/api/v1/groups/join/${groupCode}/${user?.id}`,
         {
           method: "POST",
           headers: {
@@ -89,31 +276,70 @@ const HomeComponent = () => {
       );
 
       if (response.ok) {
-        Alert.alert("Éxito", "Te has unido al grupo exitosamente.");
+        setAlert({
+          visible: true,
+          type: 'success',
+          title: 'Grupo Unido',
+          message: 'Te has unido al grupo exitosamente.'
+        });
         setIsJoinModalVisible(false);
         setGroupCode("");
       } else {
         const errorMessage = await response.text();
         if (response.status === 500) {
           if (errorMessage.includes("El usuario ya pertenece al grupo")) {
-            Alert.alert("Información", "Ya perteneces a este grupo.");
+            setAlert({
+              visible: true,
+              type: 'default',
+              title: 'Información',
+              message: 'Ya perteneces a este grupo.'
+            });
           } else if (errorMessage.includes("El grupo no existe")) {
-            Alert.alert("Error", "El grupo no existe.");
+            setAlert({
+              visible: true,
+              type: 'error',
+              title: 'Grupo No Encontrado',
+              message: 'El grupo no existe.'
+            });
           } else {
-            Alert.alert("Error", "Ocurrió un error inesperado.");
+            setAlert({
+              visible: true,
+              type: 'error',
+              title: 'Error Inesperado',
+              message: 'Ocurrió un error inesperado.'
+            });
           }
         } else {
-          Alert.alert("Error", "No se pudo unir al grupo.");
+          setAlert({
+            visible: true,
+            type: 'error',
+            title: 'Error',
+            message: 'No se pudo unir al grupo.'
+          });
         }
       }
     } catch (error) {
       console.error("Error:", error);
-      Alert.alert("Error", "Hubo un problema al conectarse con el servidor.");
+      setAlert({
+        visible: true,
+        type: 'error',
+        title: 'Error de Conexión',
+        message: 'Hubo un problema al conectarse con el servidor.'
+      });
     }
   };
 
   return (
     <View style={styles.container}>
+      {/* Custom Alert Component */}
+      <CustomAlert
+        visible={alert.visible}
+        type={alert.type}
+        title={alert.title}
+        message={alert.message}
+        onClose={() => setAlert({ ...alert, visible: false })}
+      />
+
       {loading ? (
         <ActivityIndicator
           color={Platform.OS === "android" ? "#276b80" : undefined}

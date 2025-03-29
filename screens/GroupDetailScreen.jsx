@@ -3,6 +3,7 @@ import {
   View,
   Text,
   ActivityIndicator,
+  TouchableOpacity,
   StyleSheet,
   ScrollView,
 } from "react-native";
@@ -28,7 +29,7 @@ const GroupDetailScreen = ({ route }) => {
     const fetchGroupDetails = async () => {
       try {
         const groupResponse = await fetch(
-          `http://192.168.1.21:8085/api/v1/groups/${groupId}`
+          `http://192.168.1.8:8085/api/v1/groups/${groupId}`
         );
         const groupData = await groupResponse.json();
         setGroupDetails(groupData);
@@ -49,7 +50,7 @@ const GroupDetailScreen = ({ route }) => {
         try {
           const memberPromises = groupDetails.members.map(async (memberId) => {
             const userResponse = await fetch(
-              `http://192.168.1.21:8084/api/v1/users/${memberId}`
+              `http://192.168.1.8:8084/api/v1/users/${memberId}`
             );
             const userData = await userResponse.json();
             return userData;
@@ -74,7 +75,7 @@ const GroupDetailScreen = ({ route }) => {
       if (groupDetails) {
         try {
           const adminResponse = await fetch(
-            `http://192.168.1.21:8084/api/v1/users/${groupDetails.admin}`
+            `http://192.168.1.8:8084/api/v1/users/${groupDetails.admin}`
           );
           const adminData = await adminResponse.json();
 
@@ -134,7 +135,8 @@ const GroupDetailScreen = ({ route }) => {
                 onPress={() =>
                   navigation.navigate("GroupMapScreen", { groupId: groupId })
                 }
-              />
+              > <Text style={styles.buttonText}>Ver mapa</Text> </Button>
+
             </>
           )}
         </View>
@@ -194,8 +196,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   buttonMap: {
+    paddingVertical: 5,
+    marginTop: 20,
+    backgroundColor: "#276B80",
+  },
+  buttonText: {
     color: "white",
-    backgroundColor: "#276b80",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
 

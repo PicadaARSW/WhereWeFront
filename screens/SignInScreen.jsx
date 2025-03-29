@@ -40,7 +40,7 @@ const SignInScreen = (props) => {
       console.log("Usuario:", userPayload);
       // Realiza la llamada POST al backend para guardar el usuario
       try {
-        const response = await fetch("http://192.168.1.21:8084/api/v1/users", {
+        const response = await fetch("http://192.168.1.8:8084/api/v1/users", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -67,7 +67,7 @@ const SignInScreen = (props) => {
   return (
     <View style={styles.container}>
       <Image
-        source={require("../assets/background.jpg")}
+        source={require("../assets/WhereWeImg.jpg")}
         style={styles.backgroundImage}
       />
       <Title style={styles.mainTitle}>Where We!</Title>

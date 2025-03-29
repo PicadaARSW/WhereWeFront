@@ -61,13 +61,15 @@ export default function DrawerMenuContent() {
       <Drawer.Screen
         name="Home"
         component={HomeScreen}
-        options={{ drawerLabel: "Home", headerTitle: "Welcome" }}
+        options={{ drawerLabel: "Inicio", headerTitle: "Inicio" }}
       />
       <Drawer.Screen
         name="Groups"
         component={GroupsScreen} // Se añadió la pantalla de grupos
         options={{ drawerLabel: "Mis Grupos", headerTitle: "Mis Grupos" }} // Configuración de la nueva pantalla
       />
+
+      
     </Drawer.Navigator>
   );
 }

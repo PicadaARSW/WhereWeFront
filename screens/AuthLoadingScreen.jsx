@@ -4,9 +4,9 @@ import {
   ActivityIndicator,
   Platform,
   Text,
-  StyleSheet,
   View,
 } from "react-native";
+import styles from "../styles/AuthLoadingScreenStyles"; 
 
 export default class AuthLoadingScreen extends React.Component {
   render() {
@@ -22,13 +22,3 @@ export default class AuthLoadingScreen extends React.Component {
   }
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  statusText: {
-    marginTop: 10,
-  },
-});

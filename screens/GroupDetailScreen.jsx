@@ -4,13 +4,13 @@ import {
   Text,
   ActivityIndicator,
   TouchableOpacity,
-  StyleSheet,
   ScrollView,
 } from "react-native";
 import UserItem from "../components/UserItem";
 import { Button } from "react-native-paper";
 import * as Location from "expo-location";
 import { useNavigation } from "@react-navigation/native"; // Importar useNavigation
+import styles from "../styles/GroupDetailScreenStyles";
 
 const GroupDetailScreen = ({ route }) => {
   const navigation = useNavigation(); // Usar el hook useNavigation
@@ -144,68 +144,5 @@ const GroupDetailScreen = ({ route }) => {
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  groupInfo: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  header: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#276b80",
-    marginBottom: 15,
-  },
-  groupDetail: {
-    marginBottom: 10,
-  },
-  detailText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-  },
-  groupName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#276b80",
-    marginTop: 5,
-  },
-  adminText: {
-    fontSize: 16,
-    color: "#555",
-    marginTop: 5,
-  },
-  membersHeader: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#276b80",
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  buttonMap: {
-    paddingVertical: 5,
-    marginTop: 20,
-    backgroundColor: "#276B80",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-});
 
 export default GroupDetailScreen;

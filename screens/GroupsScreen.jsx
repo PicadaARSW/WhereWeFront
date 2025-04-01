@@ -4,10 +4,10 @@ import {
   Text,
   FlatList,
   ActivityIndicator,
-  StyleSheet,
 } from "react-native";
 import GroupItem from "../components/GroupItem";
 import { UserContext } from "../UserContext";
+import styles from "../styles/GroupScreenStyles"; 
 
 const GroupsScreen = () => {
   const { id: id } = useContext(UserContext);
@@ -54,17 +54,5 @@ const GroupsScreen = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-});
 
 export default GroupsScreen;

@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text } from "react-native";
+import styles from "../styles/UserItemStyles"; 
 
 const UserItem = ({ user }) => {
   return (
@@ -9,25 +10,5 @@ const UserItem = ({ user }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  userEmail: {
-    fontSize: 14,
-    color: "gray",
-  },
-  userTimeZone: {
-    fontSize: 12,
-    color: "gray",
-  },
-});
 
 export default UserItem;

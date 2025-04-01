@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useContext, useRef } from "react";
 import {
   View,
-  StyleSheet,
   Alert,
   Text,
   TouchableOpacity,
@@ -14,6 +13,8 @@ import LocationSocket from "../location/LocationSocket";
 import * as Location from "expo-location";
 import { UserContext } from "../UserContext";
 import { Card, Divider } from "react-native-paper";
+import CustomAlert from "../components/CustomAlert";
+import styles from "../styles/GroupMapScreenStyles";
 
 const GroupMapScreen = ({ route, navigation }) => {
   const { groupId } = route.params;
@@ -46,6 +47,23 @@ const GroupMapScreen = ({ route, navigation }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingPlace, setEditingPlace] = useState(null);
   const mapRef = useRef(null);
+
+  // Estado para la alerta personalizada
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    title: "",
+    message: "",
+    buttons: [],
+  });
+
+  // Función para mostrar la alerta personalizada
+  const showCustomAlert = (title, message, buttons) => {
+    setAlertVisible(false);
+    setTimeout(() => {
+      setAlertConfig({ title, message, buttons });
+      setAlertVisible(true);
+    }, 100);
+  };
 
   const fetchUserMetadata = async (userId) => {
     try {
@@ -85,7 +103,9 @@ const GroupMapScreen = ({ route, navigation }) => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
-          Alert.alert("Permiso denegado", "Necesitamos permisos de ubicación.");
+          showCustomAlert("Permiso denegado", "Necesitamos permisos de ubicación.", [
+            { text: "OK", onPress: () => {} },
+          ]);
           setErrorMessage("Permisos de ubicación no concedidos");
           setIsLoading(false);
           return;
@@ -183,7 +203,9 @@ const GroupMapScreen = ({ route, navigation }) => {
         setConnectionStatus("Error de conexión");
         setErrorMessage("No se pudo conectar al servidor");
         setIsLoading(false);
-        Alert.alert("Error de conexión", "No se pudo conectar al servidor.");
+        showCustomAlert("Error de conexión", "No se pudo conectar al servidor.", [
+          { text: "OK", onPress: () => {} },
+        ]);
       }
     };
 
@@ -255,10 +277,14 @@ const GroupMapScreen = ({ route, navigation }) => {
       );
 
       setTracking(true);
-      Alert.alert("Compartiendo ubicación", "Tu ubicación está siendo compartida.");
+      showCustomAlert("Compartiendo ubicación", "Tu ubicación está siendo compartida.", [
+        { text: "OK", onPress: () => {} },
+      ]);
     } catch (error) {
       console.error("Error al iniciar seguimiento:", error);
-      Alert.alert("Error de ubicación", "No se pudo acceder a tu ubicación.");
+      showCustomAlert("Error de ubicación", "No se pudo acceder a tu ubicación.", [
+        { text: "OK", onPress: () => {} },
+      ]);
     }
   };
 
@@ -286,18 +312,14 @@ const GroupMapScreen = ({ route, navigation }) => {
   };
 
   const toggleTracking = () => {
-    if (tracking) {
-      Alert.alert(
-        "Detener compartir ubicación",
-        "¿Estás seguro?",
-        [
-          { text: "Cancelar", style: "cancel" },
-          { text: "Detener", onPress: stopLocationTracking, style: "destructive" },
-        ]
-      );
-    } else {
-      startLocationTracking();
-    }
+  if (tracking) {
+    showCustomAlert("Detener compartir ubicación", "¿Estás seguro?", [
+      { text: "Cancelar", style: "cancel" },
+      { text: "Detener", style: "destructive", onPress: stopLocationTracking },
+    ]);
+  } else {
+    startLocationTracking();
+  }
   };
 
   const handleAddFavoritePlace = () => {
@@ -312,9 +334,10 @@ const GroupMapScreen = ({ route, navigation }) => {
         latitude: initialRegion.latitude,
         longitude: initialRegion.longitude,
       };
-      Alert.alert(
+      showCustomAlert(
         "Advertencia",
-        "No estás compartiendo tu ubicación. El marcador se colocará en una ubicación predeterminada."
+        "No estás compartiendo tu ubicación. El marcador se colocará en una ubicación predeterminada.",
+        [{ text: "OK", onPress: () => {} }]
       );
     }
 
@@ -357,13 +380,17 @@ const GroupMapScreen = ({ route, navigation }) => {
 
   const saveFavoritePlace = () => {
     if (!newPlaceName) {
-      Alert.alert("Error", "Por favor ingresa un nombre para el lugar.");
+      showCustomAlert("Error", "Por favor ingresa un nombre para el lugar.", [
+        { text: "OK", onPress: () => {} },
+      ]);
       return;
     }
 
     const radius = parseFloat(newPlaceRadius);
     if (isNaN(radius) || radius <= 0) {
-      Alert.alert("Error", "Por favor ingresa un radio válido (mayor a 0).");
+      showCustomAlert("Error", "Por favor ingresa un radio válido (mayor a 0).", [
+        { text: "OK", onPress: () => {} },
+      ]);
       return;
     }
 
@@ -386,56 +413,62 @@ const GroupMapScreen = ({ route, navigation }) => {
   };
 
   const handleFavoritePlacePress = (place) => {
-    Alert.alert(
-      place.placeName,
-      "Selecciona una acción",
-      [
-        {
-          text: "Editar",
-          onPress: () => {
-            setEditingPlace(place);
-            setNewPlaceName(place.placeName);
-            setNewPlaceRadius(place.radius.toString());
-            setShowEditModal(true);
-          },
-        },
-        {
-          text: "Eliminar",
-          onPress: () => {
-            Alert.alert(
-              "Confirmar eliminación",
-              `¿Estás seguro de que deseas eliminar "${place.placeName}"?`,
-              [
-                { text: "Cancelar", style: "cancel" },
-                {
-                  text: "Eliminar",
-                  style: "destructive",
-                  onPress: () => {
-                    if (socket && socket.connected) {
-                      socket.sendDeleteFavoritePlace(place);
-                    }
-                  },
-                },
-              ]
-            );
-          },
-          style: "destructive",
-        },
-        { text: "Cancelar", style: "cancel" },
-      ],
-      { cancelable: true }
-    );
-  };
+  showCustomAlert(place.placeName, "Selecciona una acción", [
+    {
+      text: "Editar",
+      onPress: () => {
+        setEditingPlace(place);
+        setNewPlaceName(place.placeName);
+        setNewPlaceRadius(place.radius.toString());
+        setShowEditModal(true);
+      },
+    },
+    {
+      text: "Eliminar",
+      onPress: () => {
+        showCustomAlert(
+          "Confirmar eliminación",
+          `¿Estás seguro de que deseas eliminar "${place.placeName}"?`,
+          [
+            {
+              text: "Cancelar",
+              style: "cancel",
+              onPress: () => {},
+            },
+            {
+              text: "Eliminar",
+              style: "destructive",
+              onPress: () => {
+                if (socket && socket.connected) {
+                  socket.sendDeleteFavoritePlace(place);
+                }
+              },
+            },
+          ]
+        );
+      },
+      style: "destructive",
+    },
+    {
+      text: "Cancelar",
+      style: "cancel",
+    },
+  ]);
+};
 
   const saveEditedFavoritePlace = () => {
     if (!newPlaceName) {
-      Alert.alert("Error", "Por favor ingresa un nombre para el lugar.");
+      showCustomAlert("Error", "Por favor ingresa un nombre para el lugar.", [
+        { text: "OK", onPress: () => {} },
+      ]);
       return;
     }
 
     const radius = parseFloat(newPlaceRadius);
     if (isNaN(radius) || radius <= 0) {
-      Alert.alert("Error", "Por favor ingresa un radio válido (mayor a 0).");
+      showCustomAlert("Error", "Por favor ingresa un radio válido (mayor a 0).", [
+        { text: "OK", onPress: () => {} },
+      ]);
       return;
     }
 
@@ -739,7 +772,7 @@ const GroupMapScreen = ({ route, navigation }) => {
                 setShowPlaceModal(false);
                 setTempMarker(null);
                 setNewPlaceName("");
-                setNewPlaceRadius("200");
+                setNewPlaceRadius("100");
               }}
             >
               <Text style={styles.cancelButtonText}>Cancelar</Text>
@@ -782,80 +815,16 @@ const GroupMapScreen = ({ route, navigation }) => {
           </View>
         </View>
       </Modal>
+      {/* CustomAlert component for showing alerts */}
+      <CustomAlert
+        visible={alertVisible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        buttons={alertConfig.buttons}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "flex-end", alignItems: "center" },
-  map: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f5f5f5" },
-  loadingText: { marginTop: 10, fontSize: 16, color: "#276b80" },
-  errorContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f5f5f5", padding: 20 },
-  errorText: { marginBottom: 20, fontSize: 16, color: "red", textAlign: "center" },
-  retryButton: { backgroundColor: "#276b80", paddingHorizontal: 20, paddingVertical: 10, borderRadius: 5 },
-  retryButtonText: { color: "white", fontSize: 16 },
-  buttonContainer: {
-    width: "50%",
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    borderRadius: 10,
-    padding: 8,
-    marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  trackingButton: { paddingVertical: 12, borderRadius: 8, alignItems: "center"},
-  trackingButtonActive: { backgroundColor: "#FF6347" },
-  trackingButtonInactive: { backgroundColor: "#276b80" },
-  trackingButtonText: { color: "white", fontSize: 16, fontWeight: "bold" },
-  statusBar: {
-    position: "absolute",
-    top: 10,
-    alignSelf: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    borderRadius: 20,
-    padding: 8,
-    paddingHorizontal: 15,
-  },
-  statusText: { color: "white", fontSize: 14, fontWeight: "500" },
-  mapControls: {
-    position: "absolute",
-    right: 10,
-    bottom: 100,
-    flexDirection: "column",
-  },
-  mapControlButton: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    width: 45,
-    height: 45,
-    borderRadius: 23,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 5,
-  },
-  mapControlIcon: { fontSize: 22 },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0, 0, 0, 0.5)", justifyContent: "center", alignItems: "center" },
-  userCardContainer: { width: "85%", justifyContent: "center", alignItems: "center" },
-  userCard: { width: "100%", borderRadius: 10, padding: 5 },
-  cardText: { fontSize: 14, marginBottom: 8, color: "#555" },
-  divider: { marginVertical: 10 },
-  cardButton: { flex: 1, justifyContent: "center", alignItems: "center", paddingVertical: 8 },
-  cardButtonText: { color: "#276b80", fontWeight: "bold" },
-  modalContent: { backgroundColor: "white", padding: 20, borderRadius: 10, width: "80%", alignItems: "center" },
-  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
-  input: { borderWidth: 1, borderColor: "#ccc", padding: 10, marginBottom: 10, borderRadius: 5, width: "100%" },
-  saveButton: { backgroundColor: "#276b80", padding: 10, borderRadius: 5, alignItems: "center", width: "100%" },
-  saveButtonText: { color: "white" },
-  cancelButton: { backgroundColor: "#FF6347", padding: 10, borderRadius: 5, alignItems: "center", marginTop: 10, width: "100%" },
-  cancelButtonText: { color: "white" },
-});
 
 export default GroupMapScreen;

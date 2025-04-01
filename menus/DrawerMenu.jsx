@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Alert, Image, StyleSheet, Text, View } from "react-native";
+import { Alert, Image, Text, View } from "react-native";
 import {
   createDrawerNavigator,
   DrawerContentScrollView,
@@ -12,6 +12,7 @@ import { UserContext } from "../UserContext";
 import HomeScreen from "../screens/HomeScreen";
 import GroupsScreen from "../screens/GroupsScreen";
 import { GraphManager } from "../graph/GraphManager";
+import styles from "../styles/DrawerMenuStyles";
 
 const Drawer = createDrawerNavigator();
 
@@ -68,27 +69,6 @@ export default function DrawerMenuContent() {
         component={GroupsScreen} // Se añadió la pantalla de grupos
         options={{ drawerLabel: "Mis Grupos", headerTitle: "Mis Grupos" }} // Configuración de la nueva pantalla
       />
-
-      
     </Drawer.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  profileView: {
-    alignItems: "center",
-    padding: 10,
-  },
-  profilePhoto: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-  },
-  profileUserName: {
-    fontWeight: "700",
-  },
-  profileEmail: {
-    fontWeight: "200",
-    fontSize: 10,
-  },
-});

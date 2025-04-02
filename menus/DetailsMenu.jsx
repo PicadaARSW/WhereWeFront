@@ -1,16 +1,14 @@
 import React, { useContext } from "react";
-import {Image, Text, View } from "react-native";
-import {createDrawerNavigator,DrawerContentScrollView,DrawerItem,DrawerItemList,} from "@react-navigation/drawer";
+import { Image, Text, View } from "react-native";
+import {createDrawerNavigator,DrawerContentScrollView, DrawerItem,} from "@react-navigation/drawer";
 import { AuthContext } from "../AuthContext";
 import { UserContext } from "../UserContext";
-import HomeScreen from "../screens/HomeScreen";
-import GroupsScreen from "../screens/GroupsScreen";
-import { GraphManager } from "../graph/GraphManager";
 import styles from "../styles/DrawerMenuStyles";
 
 const Drawer = createDrawerNavigator();
 
 const CustomDrawerContent = (props) => {
+  const { signOut } = useContext(AuthContext);
   const userContext = useContext(UserContext);
 
   return (
@@ -30,39 +28,38 @@ const CustomDrawerContent = (props) => {
           {userContext?.userEmail || "Correo no disponible"}
         </Text>
       </View>
-      <DrawerItemList {...props} />
-      <DrawerItem label="Sign Out" onPress={props.signOut} />
+      <DrawerItem
+        label="Inicio"
+        onPress={() => props.navigation.navigate("Main", { screen: "Home" })} 
+      />
+      <DrawerItem
+        label="Cerrar Sesión"
+        onPress={() => {
+          signOut();
+          props.navigation.navigate("SignIn"); 
+        }}
+      />
     </DrawerContentScrollView>
   );
 };
 
-export default function DrawerMenuContent() {
-  const authContext = useContext(AuthContext);
-
+const DetailsMenu = ({ children }) => {
   return (
     <Drawer.Navigator
-      drawerType="front"
+      drawerContent={(props) => <CustomDrawerContent {...props} />}
       screenOptions={{
         headerShown: true,
-        headerStyle: {
-          backgroundColor: "#276b80",
-        },
+        headerStyle: { backgroundColor: "#276b80" },
         headerTintColor: "white",
       }}
-      drawerContent={(props) => (
-        <CustomDrawerContent {...props} signOut={authContext.signOut} />
-      )}
     >
       <Drawer.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ drawerLabel: "Inicio", headerTitle: "Inicio" }}
-      />
-      <Drawer.Screen
-        name="Groups"
-        component={GroupsScreen}
-        options={{ drawerLabel: "Mis Grupos", headerTitle: "Mis Grupos" }}
+        name="GroupDetails"
+        component={children}
+        options={{ drawerLabel: "Detalles del Grupo", headerTitle: "Detalles del Grupo" }}
       />
     </Drawer.Navigator>
   );
-}
+};
+
+export default DetailsMenu;

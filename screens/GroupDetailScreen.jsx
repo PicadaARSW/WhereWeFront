@@ -1,19 +1,14 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
+import {View,Text,ActivityIndicator,ScrollView,} from "react-native";
 import UserItem from "../components/UserItem";
 import { Button } from "react-native-paper";
 import * as Location from "expo-location";
-import { useNavigation } from "@react-navigation/native"; // Importar useNavigation
+import { useNavigation } from "@react-navigation/native"; 
 import styles from "../styles/GroupDetailScreenStyles";
+import DetailsMenu from "../menus/DetailsMenu"; 
 
-const GroupDetailScreen = ({ route }) => {
-  const navigation = useNavigation(); // Usar el hook useNavigation
+const GroupDetailScreenContent = ({ route }) => {
+  const navigation = useNavigation(); 
   const { groupId } = route.params;
   const [groupDetails, setGroupDetails] = useState(null);
   const [membersDetails, setMembersDetails] = useState([]);
@@ -29,7 +24,7 @@ const GroupDetailScreen = ({ route }) => {
     const fetchGroupDetails = async () => {
       try {
         const groupResponse = await fetch(
-          `http://192.168.1.8:8085/api/v1/groups/${groupId}`
+          `http://192.168.1.7:8085/api/v1/groups/${groupId}`
         );
         const groupData = await groupResponse.json();
         setGroupDetails(groupData);
@@ -50,7 +45,7 @@ const GroupDetailScreen = ({ route }) => {
         try {
           const memberPromises = groupDetails.members.map(async (memberId) => {
             const userResponse = await fetch(
-              `http://192.168.1.8:8084/api/v1/users/${memberId}`
+              `http://192.168.1.7:8084/api/v1/users/${memberId}`
             );
             const userData = await userResponse.json();
             return userData;
@@ -75,7 +70,7 @@ const GroupDetailScreen = ({ route }) => {
       if (groupDetails) {
         try {
           const adminResponse = await fetch(
-            `http://192.168.1.8:8084/api/v1/users/${groupDetails.admin}`
+            `http://192.168.1.7:8084/api/v1/users/${groupDetails.admin}`
           );
           const adminData = await adminResponse.json();
 
@@ -145,4 +140,10 @@ const GroupDetailScreen = ({ route }) => {
   );
 };
 
-export default GroupDetailScreen;
+export default function GroupDetailScreenComponent({ route }) {
+  return (
+    <DetailsMenu>
+      {() => <GroupDetailScreenContent route={route} />}
+    </DetailsMenu>
+  );
+}

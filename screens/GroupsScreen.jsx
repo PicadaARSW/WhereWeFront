@@ -18,9 +18,9 @@ const GroupsScreen = () => {
     const fetchGroups = async () => {
       try {
         const response = await fetch(
-          `http://192.168.1.8:8085/api/v1/groups/user/${id}`
+          `http://192.168.1.7:8085/api/v1/groups/user/${id}`
         );
-        console.log(`http://192.168.1.8:8085/api/v1/groups/user/${id}`);
+        console.log(`http://192.168.1.7:8085/api/v1/groups/user/${id}`);
         if (response.ok) {
           const data = await response.json();
           console.log(data);

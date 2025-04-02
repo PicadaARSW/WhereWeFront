@@ -67,7 +67,7 @@ const GroupMapScreen = ({ route, navigation }) => {
 
   const fetchUserMetadata = async (userId) => {
     try {
-      const response = await fetch(`http://192.168.1.8:8084/api/v1/users/${userId}`);
+      const response = await fetch(`http://192.168.1.7:8084/api/v1/users/${userId}`);
       if (response.ok) {
         const userData = await response.json();
         setUserMetadata((prev) => ({
@@ -85,7 +85,7 @@ const GroupMapScreen = ({ route, navigation }) => {
 
   const fetchFavoritePlaces = async () => {
     try {
-      const response = await fetch(`http://192.168.1.8:8086/api/v1/favoritePlaces/${groupId}`);
+      const response = await fetch(`http://192.168.1.7:8086/api/v1/favoritePlaces/${groupId}`);
       if (response.ok) {
         const places = await response.json();
         setFavoritePlaces(places);

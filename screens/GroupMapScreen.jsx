@@ -1,13 +1,5 @@
 import React, { useEffect, useState, useContext, useRef } from "react";
-import {
-  View,
-  Alert,
-  Text,
-  TouchableOpacity,
-  Modal,
-  ActivityIndicator,
-  TextInput,
-} from "react-native";
+import {View,Alert,Text,TouchableOpacity,Modal,ActivityIndicator,TextInput,} from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE, Circle } from "react-native-maps";
 import LocationSocket from "../location/LocationSocket";
 import * as Location from "expo-location";
@@ -15,10 +7,13 @@ import { UserContext } from "../UserContext";
 import { Card, Divider } from "react-native-paper";
 import CustomAlert from "../components/CustomAlert";
 import styles from "../styles/GroupMapScreenStyles";
+import { registerForPushNotificationsAsync } from "../PushNotificationManager";
+
 
 const GroupMapScreen = ({ route, navigation }) => {
   const { groupId } = route.params;
   const { id: userId, userFullName } = useContext(UserContext);
+  const [pushToken, setPushToken] = useState(null);
   const [locations, setLocations] = useState({});
   const [socket, setSocket] = useState(null);
   const [favoritePlaces, setFavoritePlaces] = useState([]);
@@ -48,6 +43,8 @@ const GroupMapScreen = ({ route, navigation }) => {
   const [editingPlace, setEditingPlace] = useState(null);
   const mapRef = useRef(null);
 
+
+
   // Estado para la alerta personalizada
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
@@ -67,7 +64,7 @@ const GroupMapScreen = ({ route, navigation }) => {
 
   const fetchUserMetadata = async (userId) => {
     try {
-      const response = await fetch(`http://192.168.1.7:8084/api/v1/users/${userId}`);
+      const response = await fetch(`http://192.168.1.6:8084/api/v1/users/${userId}`);
       if (response.ok) {
         const userData = await response.json();
         setUserMetadata((prev) => ({
@@ -85,7 +82,7 @@ const GroupMapScreen = ({ route, navigation }) => {
 
   const fetchFavoritePlaces = async () => {
     try {
-      const response = await fetch(`http://192.168.1.7:8086/api/v1/favoritePlaces/${groupId}`);
+      const response = await fetch(`http://192.168.1.6:8086/api/v1/favoritePlaces/${groupId}`);
       if (response.ok) {
         const places = await response.json();
         setFavoritePlaces(places);
@@ -216,6 +213,37 @@ const GroupMapScreen = ({ route, navigation }) => {
       if (socket) socket.disconnect();
     };
   }, [groupId]);
+
+  // NOTIFICACIONES PUSH
+  useEffect(() => {
+    const setupNotifications = async () => {
+      console.log("Iniciando configuración de notificaciones para userId:", userId, "groupId:", groupId);
+      const token = await registerForPushNotificationsAsync();
+      console.log("Token generado:", token);
+      setPushToken(token);
+  
+      if (token) {
+        console.log("Preparando envío del token:", token);
+        try {
+          const response = await fetch("http://192.168.1.6:8086/api/v1/users/push-token", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId, pushToken: token, groupId }),
+          });
+          console.log("Respuesta del backend, estado:", response.status);
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error("Error en la respuesta del backend:", errorText);
+          }
+        } catch (error) {
+          console.error("Error al enviar el token al backend:", error);
+        }
+      } else {
+        console.log("No se generó ningún token push");
+      }
+    };
+    setupNotifications();
+  }, [userId, groupId]);
 
   useEffect(() => {
     if (tracking) {

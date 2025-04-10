@@ -1,10 +1,16 @@
 import React, { useContext } from "react";
-import {Image, Text, View } from "react-native";
-import {createDrawerNavigator,DrawerContentScrollView,DrawerItem,DrawerItemList,} from "@react-navigation/drawer";
+import { Image, Text, View } from "react-native";
+import {
+  createDrawerNavigator,
+  DrawerContentScrollView,
+  DrawerItem,
+  DrawerItemList,
+} from "@react-navigation/drawer";
 import { AuthContext } from "../AuthContext";
 import { UserContext } from "../UserContext";
 import HomeScreen from "../screens/HomeScreen";
 import GroupsScreen from "../screens/GroupsScreen";
+import EditProfileScreen from "../screens/EditProfileScreen";
 import { GraphManager } from "../graph/GraphManager";
 import styles from "../styles/DrawerMenuStyles";
 
@@ -31,7 +37,11 @@ const CustomDrawerContent = (props) => {
         </Text>
       </View>
       <DrawerItemList {...props} />
-      <DrawerItem label="Sign Out" onPress={props.signOut} />
+      <DrawerItem
+        labelStyle={[styles.signOutLabel]}
+        label="Cerrar Sesión"
+        onPress={props.signOut}
+      />
     </DrawerContentScrollView>
   );
 };
@@ -62,6 +72,14 @@ export default function DrawerMenuContent() {
         name="Groups"
         component={GroupsScreen}
         options={{ drawerLabel: "Mis Grupos", headerTitle: "Mis Grupos" }}
+      />
+      <Drawer.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{
+          drawerLabel: "Configurar Perfil",
+          headerTitle: "Configurar Perfil",
+        }}
       />
     </Drawer.Navigator>
   );

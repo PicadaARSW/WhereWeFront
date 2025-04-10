@@ -16,7 +16,8 @@ export async function registerForPushNotificationsAsync() {
   console.log("Iniciando registerForPushNotificationsAsync");
   if (Device.isDevice) {
     console.log("Es un dispositivo físico");
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
     console.log("Estado de permisos existente:", existingStatus);
     let finalStatus = existingStatus;
 
@@ -34,7 +35,7 @@ export async function registerForPushNotificationsAsync() {
     console.log("Permisos otorgados, intentando obtener token...");
     try {
       const tokenResult = await Notifications.getExpoPushTokenAsync({
-        projectId: "fa3c4283-f71b-40d3-894f-0820f6c12cec"
+        projectId: "fa3c4283-f71b-40d3-894f-0820f6c12cec",
       });
       token = tokenResult.data;
       console.log("Token generado exitosamente:", token);

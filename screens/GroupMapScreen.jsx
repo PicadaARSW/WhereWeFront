@@ -1,5 +1,14 @@
 import React, { useEffect, useState, useContext, useRef } from "react";
-import {View,Alert,Text,TouchableOpacity,Modal,ActivityIndicator,TextInput,} from "react-native";
+import {
+  View,
+  Alert,
+  Text,
+  TouchableOpacity,
+  Modal,
+  ActivityIndicator,
+  TextInput,
+  Image,
+} from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE, Circle } from "react-native-maps";
 import LocationSocket from "../location/LocationSocket";
 import * as Location from "expo-location";
@@ -9,10 +18,22 @@ import CustomAlert from "../components/CustomAlert";
 import styles from "../styles/GroupMapScreenStyles";
 import { registerForPushNotificationsAsync } from "../PushNotificationManager";
 
+const profilePictures = {
+  "profile1.jpg": require("../images/Icon1.png"),
+  "profile2.jpg": require("../images/Icon2.png"),
+  "profile3.jpg": require("../images/Icon3.png"),
+  "profile4.jpg": require("../images/Icon4.png"),
+  "profile5.jpg": require("../images/Icon5.png"),
+  "profile6.jpg": require("../images/Icon6.png"),
+  "profile7.jpg": require("../images/Icon7.png"),
+  "profile8.jpg": require("../images/Icon8.png"),
+  "profile9.jpg": require("../images/Icon9.png"),
+  "profile10.jpg": require("../images/Icon10.png"),
+};
 
 const GroupMapScreen = ({ route, navigation }) => {
   const { groupId } = route.params;
-  const { id: userId, userFullName } = useContext(UserContext);
+  const { id: userId, userFullName, userPhoto } = useContext(UserContext);
   const [pushToken, setPushToken] = useState(null);
   const [locations, setLocations] = useState({});
   const [socket, setSocket] = useState(null);
@@ -38,14 +59,11 @@ const GroupMapScreen = ({ route, navigation }) => {
   const [batteryLevel, setBatteryLevel] = useState(100);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [centerOnUser, setCenterOnUser] = useState(true);
+  const [centerOnUser, setCenterOnUser] = useState(false); // Changed to false to disable automatic centering
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingPlace, setEditingPlace] = useState(null);
   const mapRef = useRef(null);
 
-
-
-  // Estado para la alerta personalizada
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
     title: "",
@@ -53,7 +71,6 @@ const GroupMapScreen = ({ route, navigation }) => {
     buttons: [],
   });
 
-  // Función para mostrar la alerta personalizada
   const showCustomAlert = (title, message, buttons) => {
     setAlertVisible(false);
     setTimeout(() => {
@@ -64,14 +81,16 @@ const GroupMapScreen = ({ route, navigation }) => {
 
   const fetchUserMetadata = async (userId) => {
     try {
-      const response = await fetch(`http://192.168.1.6:8084/api/v1/users/${userId}`);
+      const response = await fetch(
+        `http://192.168.50.218:8084/api/v1/users/${userId}`
+      );
       if (response.ok) {
         const userData = await response.json();
         setUserMetadata((prev) => ({
           ...prev,
           [userId]: {
             name: userData.userFullName || `Usuario ${userId.substring(0, 5)}`,
-            photo: userData.userPhoto || null,
+            photo: userData.profilePicture || null,
           },
         }));
       }
@@ -82,7 +101,9 @@ const GroupMapScreen = ({ route, navigation }) => {
 
   const fetchFavoritePlaces = async () => {
     try {
-      const response = await fetch(`http://192.168.1.6:8086/api/v1/favoritePlaces/${groupId}`);
+      const response = await fetch(
+        `http://192.168.50.218:8086/api/v1/favoritePlaces/${groupId}`
+      );
       if (response.ok) {
         const places = await response.json();
         setFavoritePlaces(places);
@@ -100,9 +121,11 @@ const GroupMapScreen = ({ route, navigation }) => {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== "granted") {
-          showCustomAlert("Permiso denegado", "Necesitamos permisos de ubicación.", [
-            { text: "OK", onPress: () => {} },
-          ]);
+          showCustomAlert(
+            "Permiso denegado",
+            "Necesitamos permisos de ubicación.",
+            [{ text: "OK", onPress: () => {} }]
+          );
           setErrorMessage("Permisos de ubicación no concedidos");
           setIsLoading(false);
           return;
@@ -138,7 +161,9 @@ const GroupMapScreen = ({ route, navigation }) => {
           } catch (error) {
             retryCount++;
             if (retryCount <= maxRetries) {
-              setConnectionStatus(`Reintentando (${retryCount}/${maxRetries})...`);
+              setConnectionStatus(
+                `Reintentando (${retryCount}/${maxRetries})...`
+              );
               await new Promise((r) => setTimeout(r, 2000));
               return connectWithRetry();
             }
@@ -151,7 +176,8 @@ const GroupMapScreen = ({ route, navigation }) => {
         await connectWithRetry();
 
         socketInstance.setLocationCallback((locationData) => {
-          if (!userMetadata[locationData.userId]) fetchUserMetadata(locationData.userId);
+          if (!userMetadata[locationData.userId])
+            fetchUserMetadata(locationData.userId);
           if (locationData.status === "inactive") {
             setInactiveUsers((prev) => new Set(prev).add(locationData.userId));
           } else {
@@ -200,9 +226,11 @@ const GroupMapScreen = ({ route, navigation }) => {
         setConnectionStatus("Error de conexión");
         setErrorMessage("No se pudo conectar al servidor");
         setIsLoading(false);
-        showCustomAlert("Error de conexión", "No se pudo conectar al servidor.", [
-          { text: "OK", onPress: () => {} },
-        ]);
+        showCustomAlert(
+          "Error de conexión",
+          "No se pudo conectar al servidor.",
+          [{ text: "OK", onPress: () => {} }]
+        );
       }
     };
 
@@ -214,32 +242,17 @@ const GroupMapScreen = ({ route, navigation }) => {
     };
   }, [groupId]);
 
-  // NOTIFICACIONES PUSH
   useEffect(() => {
     const setupNotifications = async () => {
-      console.log("Iniciando configuración de notificaciones para userId:", userId, "groupId:", groupId);
       const token = await registerForPushNotificationsAsync();
-      console.log("Token generado:", token);
       setPushToken(token);
-  
+
       if (token) {
-        console.log("Preparando envío del token:", token);
-        try {
-          const response = await fetch("http://192.168.1.6:8086/api/v1/users/push-token", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId, pushToken: token, groupId }),
-          });
-          console.log("Respuesta del backend, estado:", response.status);
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error("Error en la respuesta del backend:", errorText);
-          }
-        } catch (error) {
-          console.error("Error al enviar el token al backend:", error);
-        }
-      } else {
-        console.log("No se generó ningún token push");
+        await fetch("http://192.168.50.218:8086/api/v1/users/push-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, pushToken: token, groupId }),
+        });
       }
     };
     setupNotifications();
@@ -290,29 +303,23 @@ const GroupMapScreen = ({ route, navigation }) => {
 
           if (socket && socket.connected) socket.sendLocation(locationData);
 
-          if (mapRef.current && centerOnUser) {
-            mapRef.current.animateToRegion(
-              {
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                latitudeDelta: 0.005,
-                longitudeDelta: 0.005,
-              },
-              500
-            );
-          }
+          // Removed automatic centering logic from here
         }
       );
 
       setTracking(true);
-      showCustomAlert("Compartiendo ubicación", "Tu ubicación está siendo compartida.", [
-        { text: "OK", onPress: () => {} },
-      ]);
+      showCustomAlert(
+        "Compartiendo ubicación",
+        "Tu ubicación está siendo compartida.",
+        [{ text: "OK", onPress: () => {} }]
+      );
     } catch (error) {
       console.error("Error al iniciar seguimiento:", error);
-      showCustomAlert("Error de ubicación", "No se pudo acceder a tu ubicación.", [
-        { text: "OK", onPress: () => {} },
-      ]);
+      showCustomAlert(
+        "Error de ubicación",
+        "No se pudo acceder a tu ubicación.",
+        [{ text: "OK", onPress: () => {} }]
+      );
     }
   };
 
@@ -340,14 +347,18 @@ const GroupMapScreen = ({ route, navigation }) => {
   };
 
   const toggleTracking = () => {
-  if (tracking) {
-    showCustomAlert("Detener compartir ubicación", "¿Estás seguro?", [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Detener", style: "destructive", onPress: stopLocationTracking },
-    ]);
-  } else {
-    startLocationTracking();
-  }
+    if (tracking) {
+      showCustomAlert("Detener compartir ubicación", "¿Estás seguro?", [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Detener",
+          style: "destructive",
+          onPress: stopLocationTracking,
+        },
+      ]);
+    } else {
+      startLocationTracking();
+    }
   };
 
   const handleAddFavoritePlace = () => {
@@ -416,9 +427,11 @@ const GroupMapScreen = ({ route, navigation }) => {
 
     const radius = parseFloat(newPlaceRadius);
     if (isNaN(radius) || radius <= 0) {
-      showCustomAlert("Error", "Por favor ingresa un radio válido (mayor a 0).", [
-        { text: "OK", onPress: () => {} },
-      ]);
+      showCustomAlert(
+        "Error",
+        "Por favor ingresa un radio válido (mayor a 0).",
+        [{ text: "OK", onPress: () => {} }]
+      );
       return;
     }
 
@@ -441,48 +454,48 @@ const GroupMapScreen = ({ route, navigation }) => {
   };
 
   const handleFavoritePlacePress = (place) => {
-  showCustomAlert(place.placeName, "Selecciona una acción", [
-    {
-      text: "Editar",
-      onPress: () => {
-        setEditingPlace(place);
-        setNewPlaceName(place.placeName);
-        setNewPlaceRadius(place.radius.toString());
-        setShowEditModal(true);
+    showCustomAlert(place.placeName, "Selecciona una acción", [
+      {
+        text: "Editar",
+        onPress: () => {
+          setEditingPlace(place);
+          setNewPlaceName(place.placeName);
+          setNewPlaceRadius(place.radius.toString());
+          setShowEditModal(true);
+        },
       },
-    },
-    {
-      text: "Eliminar",
-      onPress: () => {
-        showCustomAlert(
-          "Confirmar eliminación",
-          `¿Estás seguro de que deseas eliminar "${place.placeName}"?`,
-          [
-            {
-              text: "Cancelar",
-              style: "cancel",
-              onPress: () => {},
-            },
-            {
-              text: "Eliminar",
-              style: "destructive",
-              onPress: () => {
-                if (socket && socket.connected) {
-                  socket.sendDeleteFavoritePlace(place);
-                }
+      {
+        text: "Eliminar",
+        onPress: () => {
+          showCustomAlert(
+            "Confirmar eliminación",
+            `¿Estás seguro de que deseas eliminar "${place.placeName}"?`,
+            [
+              {
+                text: "Cancelar",
+                style: "cancel",
+                onPress: () => {},
               },
-            },
-          ]
-        );
+              {
+                text: "Eliminar",
+                style: "destructive",
+                onPress: () => {
+                  if (socket && socket.connected) {
+                    socket.sendDeleteFavoritePlace(place);
+                  }
+                },
+              },
+            ]
+          );
+        },
+        style: "destructive",
       },
-      style: "destructive",
-    },
-    {
-      text: "Cancelar",
-      style: "cancel",
-    },
-  ]);
-};
+      {
+        text: "Cancelar",
+        style: "cancel",
+      },
+    ]);
+  };
 
   const saveEditedFavoritePlace = () => {
     if (!newPlaceName) {
@@ -494,9 +507,11 @@ const GroupMapScreen = ({ route, navigation }) => {
 
     const radius = parseFloat(newPlaceRadius);
     if (isNaN(radius) || radius <= 0) {
-      showCustomAlert("Error", "Por favor ingresa un radio válido (mayor a 0).", [
-        { text: "OK", onPress: () => {} },
-      ]);
+      showCustomAlert(
+        "Error",
+        "Por favor ingresa un radio válido (mayor a 0).",
+        [{ text: "OK", onPress: () => {} }]
+      );
       return;
     }
 
@@ -522,7 +537,11 @@ const GroupMapScreen = ({ route, navigation }) => {
   };
 
   const getMarkerColor = (userID) =>
-    userID === userId ? "#4CAF50" : inactiveUsers.has(userID) ? "#888888" : "#276b80";
+    userID === userId
+      ? "#4CAF50"
+      : inactiveUsers.has(userID)
+      ? "#888888"
+      : "#276b80";
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return "Desconocido";
@@ -547,9 +566,15 @@ const GroupMapScreen = ({ route, navigation }) => {
         longitude: loc.longitude,
       }));
       if (coords.length === 1) {
-        mapRef.current.animateToRegion({ ...coords[0], latitudeDelta: 0.01, longitudeDelta: 0.01 }, 500);
+        mapRef.current.animateToRegion(
+          { ...coords[0], latitudeDelta: 0.01, longitudeDelta: 0.01 },
+          500
+        );
       } else {
-        mapRef.current.fitToCoordinates(coords, { edgePadding: { top: 100, right: 100, bottom: 100, left: 100 }, animated: true });
+        mapRef.current.fitToCoordinates(coords, {
+          edgePadding: { top: 100, right: 100, bottom: 100, left: 100 },
+          animated: true,
+        });
       }
     }
   };
@@ -591,6 +616,20 @@ const GroupMapScreen = ({ route, navigation }) => {
     return () => clearInterval(cleanupInterval);
   }, [locations, userId]);
 
+  const getProfileImage = (photoUrl) => {
+    if (!photoUrl) return require("../images/no-profile-pic.png");
+    const index =
+      parseInt(photoUrl.replace("profile", "").replace(".jpg", "")) - 1;
+    return (
+      profilePictures[`profile${index + 1}.jpg`] ||
+      require("../images/no-profile-pic.png")
+    );
+  };
+
+  const getZIndex = (userId) => {
+    return userId.charCodeAt(0);
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -631,21 +670,56 @@ const GroupMapScreen = ({ route, navigation }) => {
         {Object.entries(locations).map(([locUserId, location]) => (
           <React.Fragment key={locUserId}>
             <Marker
-              coordinate={{ latitude: location.latitude, longitude: location.longitude }}
-              title={userMetadata[locUserId]?.name || `Usuario ${locUserId.substring(0, 5)}`}
+              coordinate={{
+                latitude: location.latitude,
+                longitude: location.longitude,
+              }}
+              title={
+                userMetadata[locUserId]?.name ||
+                `Usuario ${locUserId.substring(0, 5)}`
+              }
               description={
                 inactiveUsers.has(locUserId)
                   ? "Inactivo desde " + formatTimestamp(location.timestamp)
                   : "Activo - " + formatTimestamp(location.timestamp)
               }
-              pinColor={getMarkerColor(locUserId)}
               onPress={() => handleMarkerPress(locUserId)}
-            />
+              anchor={{ x: 0.4, y: 0.4 }}
+              flat={true}
+              zIndex={getZIndex(locUserId)}
+            >
+              <View
+                style={{
+                  backgroundColor: "white",
+                  borderRadius: 50,
+                  padding: 0.2,
+                  borderWidth: 3,
+                  borderColor: getMarkerColor(locUserId),
+                }}
+              >
+                <Image
+                  source={
+                    locUserId === userId
+                      ? userPhoto
+                      : getProfileImage(userMetadata[locUserId]?.photo)
+                  }
+                  style={{
+                    width: 35,
+                    height: 35,
+                    borderRadius: 50,
+                  }}
+                  resizeMode="cover"
+                />
+              </View>
+            </Marker>
             {location.accuracy > 0 && (
               <Circle
-                center={{ latitude: location.latitude, longitude: location.longitude }}
+                center={{
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                }}
                 radius={location.accuracy}
-                strokeWidth={1}
+                strokeWidth={2}
                 strokeColor={getMarkerColor(locUserId) + "80"}
                 fillColor={getMarkerColor(locUserId) + "20"}
               />
@@ -655,7 +729,10 @@ const GroupMapScreen = ({ route, navigation }) => {
         {favoritePlaces.map((place, index) => (
           <React.Fragment key={place.id || index}>
             <Marker
-              coordinate={{ latitude: place.latitude, longitude: place.longitude }}
+              coordinate={{
+                latitude: place.latitude,
+                longitude: place.longitude,
+              }}
               title={place.placeName}
               pinColor="#FF6347"
               onPress={() => handleFavoritePlacePress(place)}
@@ -686,22 +763,36 @@ const GroupMapScreen = ({ route, navigation }) => {
       <View style={styles.statusBar}>
         <Text style={styles.statusText}>
           {tracking ? "Compartiendo ubicación" : "No compartiendo"}
-          {Object.keys(locations).length > 0 ? ` • ${Object.keys(locations).length} usuarios` : ""}
+          {Object.keys(locations).length > 0
+            ? ` • ${Object.keys(locations).length} usuarios`
+            : ""}
         </Text>
       </View>
 
       <View style={styles.mapControls}>
-        <TouchableOpacity style={styles.mapControlButton} onPress={centerMapOnUser}>
+        <TouchableOpacity
+          style={styles.mapControlButton}
+          onPress={centerMapOnUser}
+        >
           <Text style={styles.mapControlIcon}>📍</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.mapControlButton} onPress={centerMapOnAll}>
+        <TouchableOpacity
+          style={styles.mapControlButton}
+          onPress={centerMapOnAll}
+        >
           <Text style={styles.mapControlIcon}>👥</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.mapControlButton} onPress={handleAddFavoritePlace}>
+        <TouchableOpacity
+          style={styles.mapControlButton}
+          onPress={handleAddFavoritePlace}
+        >
           <Text style={styles.mapControlIcon}>⭐</Text>
         </TouchableOpacity>
         {tempMarker && (
-          <TouchableOpacity style={styles.mapControlButton} onPress={confirmMarkerPosition}>
+          <TouchableOpacity
+            style={styles.mapControlButton}
+            onPress={confirmMarkerPosition}
+          >
             <Text style={styles.mapControlIcon}>✔️</Text>
           </TouchableOpacity>
         )}
@@ -709,7 +800,12 @@ const GroupMapScreen = ({ route, navigation }) => {
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          style={[styles.trackingButton, tracking ? styles.trackingButtonActive : styles.trackingButtonInactive]}
+          style={[
+            styles.trackingButton,
+            tracking
+              ? styles.trackingButtonActive
+              : styles.trackingButtonInactive,
+          ]}
           onPress={toggleTracking}
         >
           <Text style={styles.trackingButtonText}>
@@ -718,28 +814,49 @@ const GroupMapScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <Modal animationType="slide" transparent={true} visible={showUserCard} onRequestClose={() => setShowUserCard(false)}>
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowUserCard(false)}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showUserCard}
+        onRequestClose={() => setShowUserCard(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowUserCard(false)}
+        >
           <View style={styles.userCardContainer}>
             <Card style={styles.userCard}>
               <Card.Title
-                title={userMetadata[selectedUser]?.name || `Usuario ${selectedUser?.substring(0, 5)}`}
-                subtitle={selectedUser === userId ? "Tú" : inactiveUsers.has(selectedUser) ? "Inactivo" : "Activo"}
+                title={
+                  userMetadata[selectedUser]?.name ||
+                  `Usuario ${selectedUser?.substring(0, 5)}`
+                }
+                subtitle={
+                  selectedUser === userId
+                    ? "Tú"
+                    : inactiveUsers.has(selectedUser)
+                    ? "Inactivo"
+                    : "Activo"
+                }
               />
               <Card.Content>
                 {selectedUser && locations[selectedUser] && (
                   <>
                     <Text style={styles.cardText}>
-                      Última actualización: {formatTimestamp(locations[selectedUser].timestamp)}
+                      Última actualización:{" "}
+                      {formatTimestamp(locations[selectedUser].timestamp)}
                     </Text>
                     {locations[selectedUser].speed > 0 && (
                       <Text style={styles.cardText}>
-                        Velocidad: {Math.round(locations[selectedUser].speed * 3.6)} km/h
+                        Velocidad:{" "}
+                        {Math.round(locations[selectedUser].speed * 3.6)} km/h
                       </Text>
                     )}
                     {locations[selectedUser].batteryLevel && (
                       <Text style={styles.cardText}>
-                        Batería: {Math.round(locations[selectedUser].batteryLevel)}%
+                        Batería:{" "}
+                        {Math.round(locations[selectedUser].batteryLevel)}%
                       </Text>
                     )}
                     <Divider style={styles.divider} />
@@ -766,7 +883,10 @@ const GroupMapScreen = ({ route, navigation }) => {
                 >
                   <Text style={styles.cardButtonText}>Centrar Mapa</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.cardButton} onPress={() => setShowUserCard(false)}>
+                <TouchableOpacity
+                  style={styles.cardButton}
+                  onPress={() => setShowUserCard(false)}
+                >
                   <Text style={styles.cardButtonText}>Cerrar</Text>
                 </TouchableOpacity>
               </Card.Actions>
@@ -775,7 +895,12 @@ const GroupMapScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       </Modal>
 
-      <Modal animationType="slide" transparent={true} visible={showPlaceModal} onRequestClose={() => setShowPlaceModal(false)}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showPlaceModal}
+        onRequestClose={() => setShowPlaceModal(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <TextInput
@@ -791,7 +916,10 @@ const GroupMapScreen = ({ route, navigation }) => {
               onChangeText={setNewPlaceRadius}
               keyboardType="numeric"
             />
-            <TouchableOpacity style={styles.saveButton} onPress={saveFavoritePlace}>
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={saveFavoritePlace}
+            >
               <Text style={styles.saveButtonText}>Guardar</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -809,7 +937,12 @@ const GroupMapScreen = ({ route, navigation }) => {
         </View>
       </Modal>
 
-      <Modal animationType="slide" transparent={true} visible={showEditModal} onRequestClose={() => setShowEditModal(false)}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showEditModal}
+        onRequestClose={() => setShowEditModal(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Editar lugar favorito</Text>
@@ -826,7 +959,10 @@ const GroupMapScreen = ({ route, navigation }) => {
               onChangeText={setNewPlaceRadius}
               keyboardType="numeric"
             />
-            <TouchableOpacity style={styles.saveButton} onPress={saveEditedFavoritePlace}>
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={saveEditedFavoritePlace}
+            >
               <Text style={styles.saveButtonText}>Guardar cambios</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -843,7 +979,7 @@ const GroupMapScreen = ({ route, navigation }) => {
           </View>
         </View>
       </Modal>
-      {/* CustomAlert component for showing alerts */}
+
       <CustomAlert
         visible={alertVisible}
         title={alertConfig.title}

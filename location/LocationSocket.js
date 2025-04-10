@@ -19,7 +19,7 @@ class LocationSocket {
   async connect() {
     return new Promise((resolve, reject) => {
       try {
-        const socket = new SockJS("http://192.168.1.6:8086/ws");
+        const socket = new SockJS("http://192.168.50.218:8086/ws");
         this.stompClient = Stomp.over(socket);
 
         this.stompClient.connect(
@@ -65,11 +65,7 @@ class LocationSocket {
     }
 
     try {
-      this.stompClient.send(
-        "/app/location",
-        {},
-        JSON.stringify(locationData)
-      );
+      this.stompClient.send("/app/location", {}, JSON.stringify(locationData));
       console.log("Location sent:", locationData);
       return true;
     } catch (error) {
@@ -180,7 +176,8 @@ class LocationSocket {
         try {
           const placeData = JSON.parse(message.body);
           console.log("Favorite place deleted:", placeData);
-          if (this.onFavoritePlaceDeleted) this.onFavoritePlaceDeleted(placeData);
+          if (this.onFavoritePlaceDeleted)
+            this.onFavoritePlaceDeleted(placeData);
         } catch (error) {
           console.error("Error parsing deleted favorite place data:", error);
         }

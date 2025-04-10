@@ -23,6 +23,11 @@ export const UserProvider = ({ children }) => {
     userPhoto: require("./images/no-profile-pic.png"),
   });
 
+  // Add debugging
+  React.useEffect(() => {
+    console.log("UserContext state:", user);
+  }, [user]);
+
   return (
     <UserContext.Provider value={{ ...user, setUser }}>
       {children}

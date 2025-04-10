@@ -1,4 +1,4 @@
-import React, { useReducer, useEffect, useMemo } from "react";
+import React, { useReducer, useEffect, useMemo, useContext } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { AuthManager } from "./auth/AuthManager";
@@ -12,8 +12,23 @@ import { UserProvider } from "./UserContext";
 import GroupsScreen from "./screens/GroupsScreen";
 import GroupDetailScreen from "./screens/GroupDetailScreen";
 import GroupMapScreen from "./screens/GroupMapScreen";
+import ProfilePictureSettings from "./screens/ProfilePictureSettings";
+import EditProfileScreen from "./screens/EditProfileScreen";
 
 const Stack = createStackNavigator();
+
+const profilePictures = {
+  "profile1.jpg": require("./images/Icon1.png"),
+  "profile2.jpg": require("./images/Icon2.png"),
+  "profile3.jpg": require("./images/Icon3.png"),
+  "profile4.jpg": require("./images/Icon4.png"),
+  "profile5.jpg": require("./images/Icon5.png"),
+  "profile6.jpg": require("./images/Icon6.png"),
+  "profile7.jpg": require("./images/Icon7.png"),
+  "profile8.jpg": require("./images/Icon8.png"),
+  "profile9.jpg": require("./images/Icon9.png"),
+  "profile10.jpg": require("./images/Icon10.png"),
+};
 
 export default function App() {
   const [state, dispatch] = useReducer(
@@ -54,19 +69,37 @@ export default function App() {
     }
   );
 
+  const { setUser } = useContext(UserContext);
+
   useEffect(() => {
     const bootstrapAsync = async () => {
       let userToken = null;
       try {
         userToken = await AuthManager.getAccessTokenAsync();
+        if (userToken) {
+          // Obtener datos del usuario desde el backend
+          const userData = await GraphManager.getUserAsync();
+          setUser({
+            id: userData.id,
+            userLoading: false,
+            userFirstName: userData.userFirstName,
+            userFullName: userData.userFullName,
+            userEmail: userData.userEmail,
+            userTimeZone: userData.userTimeZone,
+            userPhoto: userData.profilePicture,
+          });
+          dispatch({ type: "RESTORE_TOKEN", token: userToken });
+        } else {
+          dispatch({ type: "RESTORE_TOKEN", token: null });
+        }
       } catch (e) {
-        console.error("Error restoring token:", e);
+        console.error("Error restoring token or user data:", e);
+        dispatch({ type: "RESTORE_TOKEN", token: null });
       }
-      dispatch({ type: "RESTORE_TOKEN", token: userToken });
     };
 
     bootstrapAsync();
-  }, []);
+  }, [setUser]);
 
   const authContext = useMemo(
     () => ({
@@ -74,20 +107,36 @@ export default function App() {
         try {
           await AuthManager.signInAsync();
           const token = await AuthManager.getAccessTokenAsync();
+          const userData = await GraphManager.getUserAsync();
+          setUser({
+            id: userData.id,
+            userLoading: false,
+            userFirstName: userData.userFirstName,
+            userFullName: userData.userFullName,
+            userEmail: userData.userEmail,
+            userTimeZone: userData.userTimeZone,
+            userPhoto: userData.profilePicture,
+          });
           dispatch({ type: "SIGN_IN", token });
-
-          const user = await GraphManager.getUserAsync();
-          dispatch({ type: "UPDATE_USER", user });
         } catch (error) {
           throw error;
         }
       },
       signOut: async () => {
         await AuthManager.signOutAsync();
+        setUser({
+          id: "",
+          userLoading: true,
+          userFirstName: "",
+          userFullName: "",
+          userEmail: "",
+          userTimeZone: "",
+          userPhoto: require("./images/no-profile-pic.png"),
+        });
         dispatch({ type: "SIGN_OUT" });
       },
     }),
-    []
+    [setUser]
   );
 
   return (
@@ -106,10 +155,51 @@ export default function App() {
                 <Stack.Screen
                   name="GroupDetailScreen"
                   component={GroupDetailScreen}
+                  options={{
+                    headerShown: true,
+                    headerTitle: "Detalles del Grupo",
+                    headerStyle: {
+                      backgroundColor: "#276b80",
+                    },
+                    headerTintColor: "white",
+                    headerTitleStyle: {
+                      fontWeight: "bold",
+                    },
+                  }}
                 />
                 <Stack.Screen
                   name="GroupMapScreen"
                   component={GroupMapScreen}
+                />
+                <Stack.Screen
+                  name="ProfilePictureSettings"
+                  component={ProfilePictureSettings}
+                  options={{
+                    headerShown: true,
+                    headerTitle: "Editar Foto de Perfil",
+                    headerStyle: {
+                      backgroundColor: "#276b80",
+                    },
+                    headerTintColor: "white",
+                    headerTitleStyle: {
+                      fontWeight: "bold",
+                    },
+                  }}
+                />
+                <Stack.Screen
+                  name="EditProfile"
+                  component={EditProfileScreen}
+                  options={{
+                    headerShown: true,
+                    headerTitle: "Configurar Perfil",
+                    headerStyle: {
+                      backgroundColor: "#276b80",
+                    },
+                    headerTintColor: "white",
+                    headerTitleStyle: {
+                      fontWeight: "bold",
+                    },
+                  }}
                 />
               </>
             )}

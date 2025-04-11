@@ -25,7 +25,7 @@ const ProfilePictureSettings = ({ navigation }) => {
   const updateProfilePicture = async (pictureURL) => {
     try {
       const response = await fetch(
-        `http://192.168.50.218:8084/api/v1/users/${userContext.id}/profile-picture`,
+        `http://192.168.50.103:8084/api/v1/users/${userContext.id}/profile-picture`,
         {
           method: "PUT",
           headers: {

@@ -28,10 +28,12 @@
         "backgroundColor": "#ffffff"
       },
       "package": "arws.WhereWe",
-      "googleServicesFile": "./google-services.json",
-      "useNextNotificationsApi": true,
+      "googleServicesFile": "./android/app/google-services.json",
       "permissions": [
-        "RECEIVE_BOOT_COMPLETED"
+        "RECEIVE_BOOT_COMPLETED",
+        "POST_NOTIFICATIONS",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
       ]
     },
     "web": {
@@ -39,26 +41,20 @@
     },
     "plugins": [
       [
-        "expo-notifications",
-        {
-          "icon": "./assets/notification-icon.png",
-          "color": "#276b80",
-          "sounds": [
-            "./assets/notification-sound.wav"
-          ],
-          "mode": "production"
-        }
-      ],
-      [
         "expo-build-properties",
         {
           "android": {
-            "compileSdkVersion": 33,
-            "targetSdkVersion": 33,
-            "buildToolsVersion": "33.0.0"
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 34,
+            "buildToolsVersion": "35.0.0"
           }
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "fa3c4283-f71b-40d3-894f-0820f6c12cec"
+      }
+    }
   }
 }

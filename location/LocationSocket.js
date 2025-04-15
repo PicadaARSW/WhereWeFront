@@ -19,7 +19,7 @@ class LocationSocket {
   async connect() {
     return new Promise((resolve, reject) => {
       try {
-        const socket = new SockJS("http://192.168.50.103:8086/ws");
+        const socket = new SockJS("http://192.168.1.7:8086/ws");
         this.stompClient = Stomp.over(socket);
 
         this.stompClient.connect(

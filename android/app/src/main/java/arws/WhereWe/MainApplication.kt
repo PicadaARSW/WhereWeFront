@@ -2,7 +2,6 @@ package arws.WhereWe
 
 import android.app.Application
 import android.content.res.Configuration
-import arws.WhereWe.BuildConfig
 
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication

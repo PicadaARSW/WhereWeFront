@@ -2,8 +2,6 @@ package arws.WhereWe
 
 import android.os.Build
 import android.os.Bundle
-import arws.WhereWe.BuildConfig 
-import arws.WhereWe.R 
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

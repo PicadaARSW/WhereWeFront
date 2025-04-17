@@ -28,7 +28,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "arws.WhereWe",
-      "googleServicesFile": "./android/app/google-services.json",
+      "googleServicesFile": "./google-services.json",
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "POST_NOTIFICATIONS",

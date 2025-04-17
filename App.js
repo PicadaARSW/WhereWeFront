@@ -14,6 +14,7 @@ import GroupDetailScreen from "./screens/GroupDetailScreen";
 import GroupMapScreen from "./screens/GroupMapScreen";
 import ProfilePictureSettings from "./screens/ProfilePictureSettings";
 import EditProfileScreen from "./screens/EditProfileScreen";
+import 'react-native-reanimated';
 
 const Stack = createStackNavigator();
 

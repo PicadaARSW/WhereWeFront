@@ -22,7 +22,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
 }
 
 rootProject.name = 'WhereWe'
-
+include ':app'
 dependencyResolutionManagement {
   versionCatalogs {
     reactAndroidLibs {

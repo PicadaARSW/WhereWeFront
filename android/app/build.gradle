@@ -18,7 +18,10 @@ react {
     autolinkLibrariesWithApp()
 
     // Habilita explícitamente la nueva arquitectura (Fabric)
-    enableNewArchitecture true
+    bundleInDebug = false
+    bundleInRelease = true
+    // Controlar la nueva arquitectura con una propiedad
+    newArchEnabled = project.hasProperty('newArchEnabled') ? project.property('newArchEnabled').toBoolean() : false
 }
 
 /**

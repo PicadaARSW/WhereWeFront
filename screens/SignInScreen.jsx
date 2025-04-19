@@ -41,7 +41,7 @@ const SignInScreen = (props) => {
       // Realiza la llamada POST al backend para guardar el usuario
       try {
         const response = await fetch(
-          "http://192.168.1.7:8084/api/v1/users",
+          "http://192.168.101.4:8084/api/v1/users",
           {
             method: "POST",
             headers: {

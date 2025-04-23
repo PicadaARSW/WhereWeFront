@@ -15,9 +15,9 @@ const GroupsScreen = () => {
     try {
       setLoading(true); // Mostrar el loading mientras se obtienen los datos
       const response = await fetch(
-        `http://192.168.101.4:8085/api/v1/groups/user/${id}`
+        `http://192.168.1.6:8085/api/v1/groups/user/${id}`
       );
-      console.log(`http://192.168.101.4:8085/api/v1/groups/user/${id}`);
+      console.log(`http://192.168.1.6:8085/api/v1/groups/user/${id}`);
       if (response.ok) {
         const data = await response.json();
         console.log(data);

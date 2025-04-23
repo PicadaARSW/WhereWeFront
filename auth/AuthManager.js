@@ -10,7 +10,10 @@ const discovery = {
   tokenEndpoint: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
 };
 
-const redirectUri = AuthSession.makeRedirectUri({ useProxy: true });
+const redirectUri = AuthSession.makeRedirectUri({
+    native: "wherewe://redirect",
+    useProxy: true
+     });
 console.log("Default redirect URI:", redirectUri);
 
 export class AuthManager {

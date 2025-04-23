@@ -24,7 +24,7 @@ const GroupDetailScreenContent = ({ route }) => {
     const fetchGroupDetails = async () => {
       try {
         const groupResponse = await fetch(
-          `http://192.168.101.4:8085/api/v1/groups/${groupId}`
+          `http://192.168.1.6:8085/api/v1/groups/${groupId}`
         );
         const groupData = await groupResponse.json();
         setGroupDetails(groupData);
@@ -75,7 +75,7 @@ const GroupDetailScreenContent = ({ route }) => {
         try {
           const memberPromises = groupDetails.members.map(async (memberId) => {
             const userResponse = await fetch(
-              `http://192.168.101.4:8084/api/v1/users/${memberId}`
+              `http://192.168.1.6:8084/api/v1/users/${memberId}`
             );
             const userData = await userResponse.json();
             return userData;
@@ -100,7 +100,7 @@ const GroupDetailScreenContent = ({ route }) => {
       if (groupDetails) {
         try {
           const adminResponse = await fetch(
-            `http://192.168.101.4:8084/api/v1/users/${groupDetails.admin}`
+            `http://192.168.1.6:8084/api/v1/users/${groupDetails.admin}`
           );
           const adminData = await adminResponse.json();
 

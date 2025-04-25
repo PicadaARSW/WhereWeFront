@@ -1,0 +1,137 @@
+import { StyleSheet, Dimensions } from "react-native";
+
+const { height } = Dimensions.get("window");
+
+export default StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    paddingTop: 20,
+  },
+  infoContainer: {
+    height: height * 0.4,
+    width: "90%",
+    backgroundColor: "#C5E6D5",
+    padding: 20,
+    marginTop: 20,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "space-evenly",
+    elevation: 5,
+  },
+  userIcon: {
+    fontSize: 50,
+    color: "#276B80",
+  },
+  userText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#276B80",
+  },
+  email: {
+    color: "#333333",
+    fontSize: 16,
+  },
+  separator: {
+    width: "80%",
+    height: 1,
+    backgroundColor: "#a3a3a3",
+    marginVertical: 10,
+  },
+  description: {
+    fontSize: 14,
+    color: "#333333",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  joinGroup: {
+    backgroundColor: "#276B80",
+    paddingVertical: 15,
+    paddingHorizontal: 25,
+    borderRadius: 30,
+    alignItems: "center",
+    width: "80%",
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  createContainer: {
+    height: height * 0.4,
+    width: "90%",
+    backgroundColor: "#C5E6D5",
+    padding: 20,
+    marginTop: 20,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "space-evenly",
+    elevation: 5,
+  },
+  groupIcon: {
+    fontSize: 50,
+    color: "#276B80",
+  },
+  createButton: {
+    backgroundColor: "#276B80",
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 30,
+    alignItems: "center",
+    width: "80%",
+    flexDirection: "row",
+    justifyContent: "center",
+  },
+  createButtonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  /* MODAL STYLES */
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.5)", // Semi-transparente para resaltar el modal
+  },
+  modalContent: {
+    width: "80%",
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 15,
+    color: "#276B80",
+    textAlign: "center",
+  },
+  input: {
+    width: "90%",
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 10,
+    marginBottom: 15,
+    fontSize: 16,
+    color: "#333",
+  },
+  button: {
+    backgroundColor: "#276B80",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    alignItems: "center",
+    width: "80%",
+    marginTop: 10,
+  },
+});

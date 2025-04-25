@@ -12,8 +12,10 @@ import {
   Dimensions,
   Animated,
 } from "react-native";
+import PropTypes from "prop-types";
 import { UserContext } from "../UserContext";
 import { GraphManager } from "../graph/GraphManager";
+import { ApiClient } from "../api/ApiClient";
 import styles from "../styles/HomeScreenStyles";
 
 // Custom Alert Component with Animated Entrance
@@ -23,9 +25,11 @@ const CustomAlert = ({
   title,
   message,
   onClose,
+  autoDismiss = 3000,
 }) => {
   const screenWidth = Dimensions.get("window").width;
   const animatedValue = useRef(new Animated.Value(screenWidth)).current;
+  const timerRef = useRef(null);
 
   // Animate the alert sliding in from the right
   useEffect(() => {
@@ -36,8 +40,18 @@ const CustomAlert = ({
         tension: 40,
         useNativeDriver: true,
       }).start();
+
+      timerRef.current = setTimeout(() => {
+        handleClose();
+      }, autoDismiss);
     }
-  }, [visible]);
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [visible, autoDismiss]);
 
   // Close animation
   const handleClose = () => {
@@ -45,7 +59,24 @@ const CustomAlert = ({
       toValue: screenWidth,
       duration: 300,
       useNativeDriver: true,
-    }).start(onClose);
+    }).start(() => {
+      onClose();
+    });
+
+    // Limpiar temporizador al cerrar manualmente
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
+    CustomAlert.propTypes = {
+      visible: PropTypes.bool.isRequired,
+      type: PropTypes.oneOf(["default", "success", "error", "warning"]),
+      title: PropTypes.string.isRequired,
+      message: PropTypes.string.isRequired,
+      onClose: PropTypes.func.isRequired,
+      autoDismiss: PropTypes.number, // Added prop validation for autoDismiss
+    };
   };
 
   // Alert configurations
@@ -159,9 +190,7 @@ const alertStyles = StyleSheet.create({
 
 const HomeComponent = () => {
   const userContext = useContext(UserContext);
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  // Estado para el modal de creación de grupo
   const [nameGroup, setNameGroup] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   // Estado para el modal de unirse a un grupo
@@ -202,15 +231,9 @@ const HomeComponent = () => {
     }
 
     try {
-      const response = await fetch("http://192.168.50.103:8085/api/v1/groups", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          admin: userContext?.id,
-          nameGroup: nameGroup,
-        }),
+      const response = await ApiClient(":8085/api/v1/groups", "POST", {
+        admin: userContext?.id,
+        nameGroup: nameGroup,
       });
 
       if (response.ok) {
@@ -254,14 +277,9 @@ const HomeComponent = () => {
     }
 
     try {
-      const response = await fetch(
-        `http://192.168.50.103:8085/api/v1/groups/join/${groupCode}/${userContext?.id}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+      const response = await ApiClient(
+        `:8085/api/v1/groups/join/${groupCode}/${userContext?.id}`,
+        "POST"
       );
 
       if (response.ok) {

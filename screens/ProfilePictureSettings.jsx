@@ -1,7 +1,9 @@
 import React, { useContext } from "react";
+import PropTypes from "prop-types";
 import { View, FlatList, Image, TouchableOpacity } from "react-native";
 import styles from "../styles/ProfilePictureSettingsStyles";
 import { UserContext } from "../UserContext";
+import { ApiClient } from "../api/ApiClient";
 
 const profilePictures = [
   require("../images/Icon1.png"),
@@ -24,15 +26,10 @@ const ProfilePictureSettings = ({ navigation }) => {
 
   const updateProfilePicture = async (pictureURL) => {
     try {
-      const response = await fetch(
-        `http://192.168.50.103:8084/api/v1/users/${userContext.id}/profile-picture`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ pictureUrl: pictureURL }),
-        }
+      const response = await ApiClient(
+        `:8084/api/v1/users/${userContext.id}/profile-picture`,
+        "PUT",
+        { pictureUrl: pictureURL }
       );
 
       if (response.ok) {
@@ -71,6 +68,9 @@ const ProfilePictureSettings = ({ navigation }) => {
       />
     </View>
   );
+};
+ProfilePictureSettings.propTypes = {
+  navigation: PropTypes.object.isRequired,
 };
 
 export default ProfilePictureSettings;

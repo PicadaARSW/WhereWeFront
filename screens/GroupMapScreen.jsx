@@ -17,6 +17,7 @@ import { Card, Divider } from "react-native-paper";
 import CustomAlert from "../components/CustomAlert";
 import styles from "../styles/GroupMapScreenStyles";
 import { registerForPushNotificationsAsync } from "../PushNotificationManager";
+import { ApiClient } from "../api/ApiClient";
 
 const profilePictures = {
   "profile1.jpg": require("../images/Icon1.png"),
@@ -31,9 +32,11 @@ const profilePictures = {
   "profile10.jpg": require("../images/Icon10.png"),
 };
 
+import PropTypes from "prop-types";
+
 const GroupMapScreen = ({ route, navigation }) => {
   const { groupId } = route.params;
-  const { id: userId, userFullName, userPhoto } = useContext(UserContext);
+  const { id: userId, userPhoto } = useContext(UserContext);
   const [pushToken, setPushToken] = useState(null);
   const [locations, setLocations] = useState({});
   const [socket, setSocket] = useState(null);
@@ -59,7 +62,7 @@ const GroupMapScreen = ({ route, navigation }) => {
   const [batteryLevel, setBatteryLevel] = useState(100);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [centerOnUser, setCenterOnUser] = useState(false); // Changed to false to disable automatic centering
+  const [centerOnUser, setCenterOnUser] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingPlace, setEditingPlace] = useState(null);
   const mapRef = useRef(null);
@@ -81,9 +84,8 @@ const GroupMapScreen = ({ route, navigation }) => {
 
   const fetchUserMetadata = async (userId) => {
     try {
-      const response = await fetch(
-        `http://192.168.50.103:8084/api/v1/users/${userId}`
-      );
+      const response = await ApiClient(`:8084/api/v1/users/${userId}`);
+
       if (response.ok) {
         const userData = await response.json();
         setUserMetadata((prev) => ({
@@ -101,9 +103,10 @@ const GroupMapScreen = ({ route, navigation }) => {
 
   const fetchFavoritePlaces = async () => {
     try {
-      const response = await fetch(
-        `http://192.168.50.103:8086/api/v1/favoritePlaces/${groupId}`
+      const response = await ApiClient(
+        `:8086/api/v1/favoritePlaces/${groupId}`
       );
+
       if (response.ok) {
         const places = await response.json();
         setFavoritePlaces(places);
@@ -248,10 +251,10 @@ const GroupMapScreen = ({ route, navigation }) => {
       setPushToken(token);
 
       if (token) {
-        await fetch("http://192.168.50.103:8086/api/v1/users/push-token", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, pushToken: token, groupId }),
+        await ApiClient(":8086/api/v1/users/push-token", "POST", {
+          userId,
+          pushToken: pushToken,
+          groupId,
         });
       }
     };
@@ -301,9 +304,7 @@ const GroupMapScreen = ({ route, navigation }) => {
             [userId]: { ...locationData, timestamp: new Date().getTime() },
           }));
 
-          if (socket && socket.connected) socket.sendLocation(locationData);
-
-          // Removed automatic centering logic from here
+          if (socket.connected) socket.sendLocation(locationData);
         }
       );
 
@@ -331,7 +332,7 @@ const GroupMapScreen = ({ route, navigation }) => {
 
     setInactiveUsers((prev) => new Set(prev).add(userId));
 
-    if (socket && socket.connected && locations[userId]) {
+    if (socket?.connected && locations[userId]) {
       const inactiveMessage = {
         userId,
         latitude: locations[userId]?.latitude || initialRegion.latitude,
@@ -443,7 +444,7 @@ const GroupMapScreen = ({ route, navigation }) => {
       radius,
     };
 
-    if (socket && socket.connected) {
+    if (socket?.connected) {
       socket.sendFavoritePlace(placeData);
     }
 
@@ -480,7 +481,7 @@ const GroupMapScreen = ({ route, navigation }) => {
                 text: "Eliminar",
                 style: "destructive",
                 onPress: () => {
-                  if (socket && socket.connected) {
+                  if (socket?.connected) {
                     socket.sendDeleteFavoritePlace(place);
                   }
                 },
@@ -521,7 +522,7 @@ const GroupMapScreen = ({ route, navigation }) => {
       radius,
     };
 
-    if (socket && socket.connected) {
+    if (socket?.connected) {
       socket.sendEditFavoritePlace(updatedPlace);
     }
 
@@ -539,9 +540,10 @@ const GroupMapScreen = ({ route, navigation }) => {
   const getMarkerColor = (userID) =>
     userID === userId
       ? "#4CAF50"
-      : inactiveUsers.has(userID)
-      ? "#888888"
-      : "#276b80";
+      : (() => {
+          if (inactiveUsers.has(userID)) return "#888888";
+          return "#276b80";
+        })();
 
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return "Desconocido";
@@ -835,9 +837,12 @@ const GroupMapScreen = ({ route, navigation }) => {
                 subtitle={
                   selectedUser === userId
                     ? "Tú"
-                    : inactiveUsers.has(selectedUser)
-                    ? "Inactivo"
-                    : "Activo"
+                    : (() => {
+                        const userStatus = inactiveUsers.has(selectedUser)
+                          ? "Inactivo"
+                          : "Activo";
+                        return userStatus;
+                      })()
                 }
               />
               <Card.Content>
@@ -989,6 +994,15 @@ const GroupMapScreen = ({ route, navigation }) => {
       />
     </View>
   );
+};
+
+GroupMapScreen.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      groupId: PropTypes.string.isRequired,
+    }).isRequired,
+  }).isRequired,
+  navigation: PropTypes.object.isRequired,
 };
 
 export default GroupMapScreen;

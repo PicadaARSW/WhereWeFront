@@ -3,19 +3,24 @@ import { Alert, View, Image } from "react-native";
 import { Button, Card, Title, Paragraph } from "react-native-paper";
 import { AuthContext } from "../AuthContext";
 import styles from "../styles/SigninScreenStyles";
-import { UserContext } from "../UserContext"; // Importa el UserContext
+import { UserContext } from "../UserContext";
 import { GraphManager } from "../graph/GraphManager";
+import { ApiClient } from "../api/ApiClient";
 
 const SignInScreen = (props) => {
-  const { signIn } = useContext(AuthContext); // Usa el contexto para el inicio de sesión
-  const { setUser } = useContext(UserContext); // Usa el setUser del UserContext
+  const { signIn } = useContext(AuthContext);
+  const { setUser } = useContext(UserContext);
 
   const _signInAsync = async () => {
     try {
-      // Iniciar sesión usando el AuthManager
+      // Iniciar sesión usando el contexto AuthContext
       await signIn();
 
-      const user = await GraphManager.getUserAsync(); // Asegúrate de obtener los detalles del usuario de GraphManager
+      // Obtener los datos del usuario
+      const user = await GraphManager.getUserAsync();
+      if (!user) {
+        throw new Error("No se pudo obtener la información del usuario.");
+      }
 
       // Actualizar el contexto con la información del usuario
       setUser({
@@ -38,32 +43,29 @@ const SignInScreen = (props) => {
       };
 
       console.log("Usuario:", userPayload);
-      // Realiza la llamada POST al backend para guardar el usuario
-      try {
-        const response = await fetch(
-          "http://192.168.50.103:8084/api/v1/users",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(userPayload),
-          }
+
+      const response = await ApiClient(
+        ":8084/api/v1/users",
+        "POST",
+        userPayload
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+          `Error en la petición: ${response.status} - ${errorText}`
         );
-
-        if (!response.ok) {
-          throw new Error(`Error en la petición: ${response.status}`);
-        }
-
-        const responseData = await response.json(); // Espera y convierte la respuesta en JSON
-        console.log("Usuario guardado con éxito", responseData); // Muestra la respuesta de éxito
-      } catch (error) {
-        console.error("Error en ApiClient:", error); // Error en la solicitud
-        Alert.alert("Error en la petición", error.message);
       }
+
+      const responseData = await response.json();
+      console.log("Usuario guardado con éxito", responseData);
     } catch (error) {
       console.error("Error durante el inicio de sesión:", error);
-      Alert.alert("Sign In Error", JSON.stringify(error));
+      Alert.alert(
+        "Error de Inicio de Sesión",
+        error.message ||
+          "Ocurrió un error inesperado. Por favor, intenta de nuevo."
+      );
     }
   };
 

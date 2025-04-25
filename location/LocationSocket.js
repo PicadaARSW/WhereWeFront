@@ -1,5 +1,6 @@
 import SockJS from "sockjs-client";
 import { Stomp } from "@stomp/stompjs";
+import { AuthManager } from "../auth/AuthManager";
 
 class LocationSocket {
   constructor(groupId) {
@@ -18,43 +19,84 @@ class LocationSocket {
 
   async connect() {
     return new Promise((resolve, reject) => {
-      try {
-        const socket = new SockJS("http://192.168.50.103:8086/ws");
-        this.stompClient = Stomp.over(socket);
+      const tryConnect = async (attempts = 0) => {
+        if (attempts >= 3) {
+          reject(new Error("Max connection attempts reached"));
+          return;
+        }
 
-        this.stompClient.connect(
-          {},
-          () => {
-            console.log("Connected to STOMP server");
-            this.connected = true;
-
-            this.locationSubscription = this.stompClient.subscribe(
-              `/topic/location/${this.groupId}`,
-              (message) => {
-                try {
-                  const locationData = JSON.parse(message.body);
-                  console.log("Location received:", locationData);
-                  if (this.onLocationReceived) {
-                    this.onLocationReceived(locationData);
-                  }
-                } catch (error) {
-                  console.error("Error parsing location data:", error);
-                }
-              }
-            );
-
-            resolve();
-          },
-          (error) => {
-            console.error("STOMP connection error:", error);
-            this.connected = false;
-            reject(error);
+        try {
+          const accessToken = await AuthManager.getAccessTokenAsync();
+          if (!accessToken) {
+            throw new Error("No se pudo obtener el token de acceso.");
           }
-        );
-      } catch (error) {
-        console.error("Error setting up STOMP connection:", error);
-        reject(error);
-      }
+
+          const socket = new SockJS("http://192.168.1.14:8086/ws");
+          this.stompClient = Stomp.over(socket);
+
+          // Habilitar depuración en STOMP
+          this.stompClient.debug = (str) => {
+            console.log("STOMP Debug:", str);
+          };
+
+          this.stompClient.connect(
+            {
+              Authorization: `Bearer ${accessToken}`,
+            },
+            () => {
+              console.log("Connected to STOMP server");
+              this.connected = true;
+
+              this.locationSubscription = this.stompClient.subscribe(
+                `/topic/location/${this.groupId}`,
+                (message) => {
+                  try {
+                    const locationData = JSON.parse(message.body);
+                    console.log("Location received:", locationData);
+                    if (this.onLocationReceived) {
+                      this.onLocationReceived(locationData);
+                    }
+                  } catch (error) {
+                    console.error("Error parsing location data:", error);
+                  }
+                }
+              );
+
+              resolve();
+            },
+            (error) => {
+              console.error("STOMP connection error:", error);
+              console.log("Error details:", JSON.stringify(error, null, 2));
+              this.connected = false;
+              if (error.message?.includes("401")) {
+                console.log("Token expired, retrying with new token...");
+                setTimeout(() => tryConnect(attempts + 1), 1000);
+              } else {
+                reject(error);
+              }
+            }
+          );
+
+          // Manejar cierre inesperado del WebSocket
+          socket.onclose = (event) => {
+            console.error("WebSocket closed:", {
+              code: event.code,
+              reason: event.reason,
+              wasClean: event.wasClean,
+            });
+            reject(
+              new Error(
+                `WebSocket closed with code ${event.code}, reason: ${event.reason}`
+              )
+            );
+          };
+        } catch (error) {
+          console.error("Error setting up STOMP connection:", error);
+          reject(error);
+        }
+      };
+
+      tryConnect();
     });
   }
 

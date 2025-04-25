@@ -1,9 +1,8 @@
-import React, { useReducer, useEffect, useMemo, useContext } from "react";
+import React, { useReducer, useEffect, useMemo } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { AuthManager } from "./auth/AuthManager";
 import { AuthContext } from "./AuthContext";
-import { UserContext } from "./UserContext";
 import SignInScreen from "./screens/SignInScreen";
 import MainScreen from "./MainScreen";
 import AuthLoadingScreen from "./screens/AuthLoadingScreen";
@@ -69,25 +68,28 @@ export default function App() {
     }
   );
 
-  const { setUser } = useContext(UserContext);
-
   useEffect(() => {
     const bootstrapAsync = async () => {
       let userToken = null;
       try {
         userToken = await AuthManager.getAccessTokenAsync();
-        if (userToken) {
-          // Obtener datos del usuario desde el backend
+        const graphToken = await AuthManager.getGraphAccessTokenAsync();
+        if (userToken && graphToken) {
           const userData = await GraphManager.getUserAsync();
-          setUser({
-            id: userData.id,
-            userLoading: false,
-            userFirstName: userData.userFirstName,
-            userFullName: userData.userFullName,
-            userEmail: userData.userEmail,
-            userTimeZone: userData.userTimeZone,
-            userPhoto: userData.profilePicture,
-          });
+          if (userData) {
+            dispatch({
+              type: "UPDATE_USER",
+              user: {
+                id: userData.id,
+                userLoading: false,
+                userFirstName: userData.userFirstName,
+                userFullName: userData.userFullName,
+                userEmail: userData.userEmail,
+                userTimeZone: userData.userTimeZone,
+                userPhoto: userData.userPhoto,
+              },
+            });
+          }
           dispatch({ type: "RESTORE_TOKEN", token: userToken });
         } else {
           dispatch({ type: "RESTORE_TOKEN", token: null });
@@ -99,44 +101,54 @@ export default function App() {
     };
 
     bootstrapAsync();
-  }, [setUser]);
+  }, []);
 
   const authContext = useMemo(
     () => ({
       signIn: async () => {
         try {
-          await AuthManager.signInAsync();
-          const token = await AuthManager.getAccessTokenAsync();
+          const token = await AuthManager.signInAsync();
+          await AuthManager.signInGraphAsync();
           const userData = await GraphManager.getUserAsync();
-          setUser({
-            id: userData.id,
-            userLoading: false,
-            userFirstName: userData.userFirstName,
-            userFullName: userData.userFullName,
-            userEmail: userData.userEmail,
-            userTimeZone: userData.userTimeZone,
-            userPhoto: userData.profilePicture,
-          });
+          if (userData) {
+            dispatch({
+              type: "UPDATE_USER",
+              user: {
+                id: userData.id,
+                userLoading: false,
+                userFirstName: userData.userFirstName,
+                userFullName: userData.userFullName,
+                userEmail: userData.userEmail,
+                userTimeZone: userData.userTimeZone,
+                userPhoto: userData.userPhoto,
+              },
+            });
+          }
           dispatch({ type: "SIGN_IN", token });
+          return token; // Devolver el token para uso posterior
         } catch (error) {
+          console.error("Sign-in error:", error);
           throw error;
         }
       },
       signOut: async () => {
         await AuthManager.signOutAsync();
-        setUser({
-          id: "",
-          userLoading: true,
-          userFirstName: "",
-          userFullName: "",
-          userEmail: "",
-          userTimeZone: "",
-          userPhoto: require("./images/no-profile-pic.png"),
+        dispatch({
+          type: "UPDATE_USER",
+          user: {
+            id: "",
+            userLoading: true,
+            userFirstName: "",
+            userFullName: "",
+            userEmail: "",
+            userTimeZone: "",
+            userPhoto: require("./images/no-profile-pic.png"),
+          },
         });
         dispatch({ type: "SIGN_OUT" });
       },
     }),
-    [setUser]
+    []
   );
 
   return (

@@ -5,6 +5,8 @@ import { Button } from "react-native-paper";
 import * as Location from "expo-location";
 import { useNavigation } from "@react-navigation/native";
 import styles from "../styles/GroupDetailScreenStyles";
+import PropTypes from "prop-types";
+import { ApiClient } from "../api/ApiClient";
 
 const GroupDetailScreenContent = ({ route }) => {
   const navigation = useNavigation();
@@ -23,9 +25,7 @@ const GroupDetailScreenContent = ({ route }) => {
   useEffect(() => {
     const fetchGroupDetails = async () => {
       try {
-        const groupResponse = await fetch(
-          `http://192.168.50.103:8085/api/v1/groups/${groupId}`
-        );
+        const groupResponse = await ApiClient(`:8085/api/v1/groups/${groupId}`);
         const groupData = await groupResponse.json();
         setGroupDetails(groupData);
         updateTimeUntilCodeUpdate(groupData.nextCodeUpdate);
@@ -42,7 +42,7 @@ const GroupDetailScreenContent = ({ route }) => {
   // Actualizar el tiempo restante cada minuto
   useEffect(() => {
     const interval = setInterval(() => {
-      if (groupDetails && groupDetails.nextCodeUpdate) {
+      if (groupDetails?.nextCodeUpdate) {
         updateTimeUntilCodeUpdate(groupDetails.nextCodeUpdate);
       }
     }, 300000); // Actualizar cada 5 minutos
@@ -71,11 +71,11 @@ const GroupDetailScreenContent = ({ route }) => {
   // Obtener detalles de los miembros
   useEffect(() => {
     const fetchMembersDetails = async () => {
-      if (groupDetails && groupDetails.members) {
+      if (groupDetails?.members) {
         try {
           const memberPromises = groupDetails.members.map(async (memberId) => {
-            const userResponse = await fetch(
-              `http://192.168.50.103:8084/api/v1/users/${memberId}`
+            const userResponse = await ApiClient(
+              `:8084/api/v1/users/${memberId}`
             );
             const userData = await userResponse.json();
             return userData;
@@ -99,8 +99,8 @@ const GroupDetailScreenContent = ({ route }) => {
     const fetchAdminDetails = async () => {
       if (groupDetails) {
         try {
-          const adminResponse = await fetch(
-            `http://192.168.50.103:8084/api/v1/users/${groupDetails.admin}`
+          const adminResponse = await ApiClient(
+            `:8084/api/v1/users/${groupDetails.admin}`
           );
           const adminData = await adminResponse.json();
 
@@ -144,13 +144,17 @@ const GroupDetailScreenContent = ({ route }) => {
               <View style={styles.groupDetail}>
                 <Text style={styles.detailText}>Tiempo para nuevo código:</Text>
                 <Text style={styles.groupName}>
-                  {timeUntilCodeUpdate.hours !== null
-                    ? timeUntilCodeUpdate.hours > 0
-                      ? `${timeUntilCodeUpdate.hours} horas`
-                      : timeUntilCodeUpdate.minutes !== null
-                      ? `${timeUntilCodeUpdate.minutes} minutos`
-                      : "Calculando..."
-                    : "Calculando..."}
+                  {(() => {
+                    let timeText = "Calculando...";
+                    if (timeUntilCodeUpdate.hours !== null) {
+                      if (timeUntilCodeUpdate.hours > 0) {
+                        timeText = `${timeUntilCodeUpdate.hours} horas`;
+                      } else if (timeUntilCodeUpdate.minutes !== null) {
+                        timeText = `${timeUntilCodeUpdate.minutes} minutos`;
+                      }
+                    }
+                    return timeText;
+                  })()}
                 </Text>
               </View>
               <View style={styles.groupDetail}>
@@ -182,6 +186,13 @@ const GroupDetailScreenContent = ({ route }) => {
       )}
     </ScrollView>
   );
+};
+GroupDetailScreenContent.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      groupId: PropTypes.string.isRequired,
+    }).isRequired,
+  }).isRequired,
 };
 
 export default GroupDetailScreenContent;

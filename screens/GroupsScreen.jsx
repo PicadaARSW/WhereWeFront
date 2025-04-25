@@ -4,9 +4,10 @@ import GroupItem from "../components/GroupItem";
 import { useFocusEffect } from "@react-navigation/native";
 import { UserContext } from "../UserContext";
 import styles from "../styles/GroupScreenStyles";
+import { ApiClient } from "../api/ApiClient";
 
 const GroupsScreen = () => {
-  const { id: id } = useContext(UserContext);
+  const { id } = useContext(UserContext);
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,10 +15,8 @@ const GroupsScreen = () => {
   const fetchGroups = useCallback(async () => {
     try {
       setLoading(true); // Mostrar el loading mientras se obtienen los datos
-      const response = await fetch(
-        `http://192.168.50.103:8085/api/v1/groups/user/${id}`
-      );
-      console.log(`http://192.168.50.103:8085/api/v1/groups/user/${id}`);
+      const response = await ApiClient(`:8085/api/v1/groups/user/${id}`);
+
       if (response.ok) {
         const data = await response.json();
         console.log(data);
@@ -43,11 +42,11 @@ const GroupsScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Mis Grupos</Text>
-      {loading ? (
-        <ActivityIndicator size="large" color="#276b80" />
-      ) : groups.length === 0 ? (
+      {loading && <ActivityIndicator size="large" color="#276b80" />}
+      {!loading && groups.length === 0 && (
         <Text style={styles.alertMessage}>No tienes grupos asignados.</Text>
-      ) : (
+      )}
+      {!loading && groups.length > 0 && (
         <FlatList
           data={groups}
           keyExtractor={(item) => item.id.toString()}

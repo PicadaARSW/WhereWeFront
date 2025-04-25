@@ -1,13 +1,11 @@
 import { Client } from "@microsoft/microsoft-graph-client";
 import { GraphAuthProvider } from "./GraphAuthProvider";
+import { ApiClient } from "../api/ApiClient";
 
-// Set the authProvider to an instance
-// of GraphAuthProvider
 const clientOptions = {
   authProvider: new GraphAuthProvider(),
 };
 
-// Initialize the client
 const graphClient = Client.initWithMiddleware(clientOptions);
 
 export class GraphManager {
@@ -20,23 +18,13 @@ export class GraphManager {
         )
         .get();
 
-      // Obtener datos adicionales desde tu backend
-      const backendResponse = await fetch(
-        `http://192.168.50.103:8084/api/v1/users/${user.id}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const backendResponse = await ApiClient(`:8084/api/v1/users/${user.id}`);
 
       let profilePicture = require("../images/no-profile-pic.png");
       let backendUser = null;
 
       if (backendResponse.ok) {
         backendUser = await backendResponse.json();
-        // Mapear la foto de perfil desde el backend a las imágenes locales
         const profilePictures = {
           "profile1.png": require("../images/Icon1.png"),
           "profile2.png": require("../images/Icon2.png"),
@@ -52,6 +40,10 @@ export class GraphManager {
         profilePicture =
           profilePictures[backendUser.profilePicture] ||
           require("../images/no-profile-pic.png");
+      } else {
+        console.warn(
+          `Error al obtener datos del backend: ${backendResponse.status} ${backendResponse.statusText}`
+        );
       }
 
       return {

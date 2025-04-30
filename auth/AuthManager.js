@@ -14,72 +14,25 @@ const redirectUri = AuthSession.makeRedirectUri({ useProxy: true });
 console.log("Default redirect URI:", redirectUri);
 
 export class AuthManager {
-  // Autenticación para la API personalizada
-  static signInAsync = async () => {
-    try {
-      const authRequest = new AuthSession.AuthRequest({
-        clientId: AuthConfig.appId,
-        scopes: AuthConfig.apiScopes,
-        redirectUri,
-        responseType: AuthSession.ResponseType.Code,
-        usePKCE: true,
-        extraParams: { prompt: "select_account" },
-      });
-
-      const result = await authRequest.promptAsync(discovery);
-      if (result.type !== "success" || !result.params.code) {
-        console.error("No authorization code received (API).", result);
-        throw new Error("Authentication failed. No code received.");
-      }
-
-      console.log("Authorization Code (API):", result.params.code);
-
-      const tokenResponse = await AuthSession.exchangeCodeAsync(
-        {
-          clientId: AuthConfig.appId,
-          code: result.params.code,
-          redirectUri,
-          scopes: AuthConfig.apiScopes,
-          extraParams: {
-            code_verifier: authRequest.codeVerifier,
-          },
-        },
-        discovery
-      );
-
-      if (!tokenResponse?.accessToken) {
-        console.error("Token exchange failed (API).", tokenResponse);
-        throw new Error("Failed to obtain API access token.");
-      }
-
-      const expirationDate = moment()
-        .add(tokenResponse.expiresIn, "seconds")
-        .toISOString();
-
-      console.log("API Access Token:", tokenResponse.accessToken);
-
-      await AsyncStorage.setItem("apiToken", tokenResponse.accessToken);
-      if (tokenResponse.refreshToken) {
-        await AsyncStorage.setItem(
-          "apiRefreshToken",
-          tokenResponse.refreshToken
-        );
-      }
-      await AsyncStorage.setItem("apiExpireTime", expirationDate);
-
-      return tokenResponse.accessToken;
-    } catch (error) {
-      console.error("Sign-in error (API):", error);
-      throw error;
-    }
+  // Tipos de autenticación soportados
+  static AUTH_TYPES = {
+    API: "api",
+    GRAPH: "graph",
   };
 
-  // Autenticación para Microsoft Graph
-  static signInGraphAsync = async () => {
+  // Función genérica para autenticación
+  static signInAsync = async (authType) => {
+    const isGraph = authType === AuthManager.AUTH_TYPES.GRAPH;
+    const scopes = isGraph ? AuthConfig.graphScopes : AuthConfig.apiScopes;
+    const tokenKey = isGraph ? "graphToken" : "apiToken";
+    const refreshTokenKey = isGraph ? "graphRefreshToken" : "apiRefreshToken";
+    const expireTimeKey = isGraph ? "graphExpireTime" : "apiExpireTime";
+    const logPrefix = isGraph ? "Graph" : "API";
+
     try {
       const authRequest = new AuthSession.AuthRequest({
         clientId: AuthConfig.appId,
-        scopes: AuthConfig.graphScopes,
+        scopes,
         redirectUri,
         responseType: AuthSession.ResponseType.Code,
         usePKCE: true,
@@ -88,20 +41,20 @@ export class AuthManager {
 
       const result = await authRequest.promptAsync(discovery);
       if (result.type !== "success" || !result.params.code) {
-        console.error("No authorization code received (Graph).", result);
+        console.error(`No authorization code received (${logPrefix}).`, result);
         throw new Error(
-          `Graph authentication failed: ${JSON.stringify(result)}`
+          `${logPrefix} authentication failed: ${JSON.stringify(result)}`
         );
       }
 
-      console.log("Authorization Code (Graph):", result.params.code);
+      console.log(`Authorization Code (${logPrefix}):`, result.params.code);
 
       const tokenResponse = await AuthSession.exchangeCodeAsync(
         {
           clientId: AuthConfig.appId,
           code: result.params.code,
           redirectUri,
-          scopes: AuthConfig.graphScopes,
+          scopes,
           extraParams: {
             code_verifier: authRequest.codeVerifier,
           },
@@ -110,169 +63,135 @@ export class AuthManager {
       );
 
       if (!tokenResponse?.accessToken) {
-        console.error("Token exchange failed (Graph).", tokenResponse);
-        throw new Error("Failed to obtain Graph access token.");
+        console.error(`Token exchange failed (${logPrefix}).`, tokenResponse);
+        throw new Error(`Failed to obtain ${logPrefix} access token.`);
       }
 
       const expirationDate = moment()
         .add(tokenResponse.expiresIn, "seconds")
         .toISOString();
 
-      console.log("Graph Access Token:", tokenResponse.accessToken);
+      console.log(`${logPrefix} Access Token:`, tokenResponse.accessToken);
 
-      await AsyncStorage.setItem("graphToken", tokenResponse.accessToken);
+      await AsyncStorage.setItem(tokenKey, tokenResponse.accessToken);
       if (tokenResponse.refreshToken) {
-        await AsyncStorage.setItem(
-          "graphRefreshToken",
-          tokenResponse.refreshToken
-        );
+        await AsyncStorage.setItem(refreshTokenKey, tokenResponse.refreshToken);
       }
-      await AsyncStorage.setItem("graphExpireTime", expirationDate);
+      await AsyncStorage.setItem(expireTimeKey, expirationDate);
 
       return tokenResponse.accessToken;
     } catch (error) {
-      console.error("Sign-in error (Graph):", error);
+      console.error(`Sign-in error (${logPrefix}):`, error);
       throw error;
     }
   };
 
+  // Método para firmar con la API personalizada
+  static signInApiAsync = () =>
+    AuthManager.signInAsync(AuthManager.AUTH_TYPES.API);
+
+  // Método para firmar con Microsoft Graph
+  static signInGraphAsync = () =>
+    AuthManager.signInAsync(AuthManager.AUTH_TYPES.GRAPH);
+
+  // Método genérico para obtener tokens
+  static getAccessTokenAsync = async (authType) => {
+    const isGraph = authType === AuthManager.AUTH_TYPES.GRAPH;
+    const scopes = isGraph ? AuthConfig.graphScopes : AuthConfig.apiScopes;
+    const tokenKey = isGraph ? "graphToken" : "apiToken";
+    const refreshTokenKey = isGraph ? "graphRefreshToken" : "apiRefreshToken";
+    const expireTimeKey = isGraph ? "graphExpireTime" : "apiExpireTime";
+    const logPrefix = isGraph ? "Graph" : "API";
+
+    try {
+      const expireTime = await AsyncStorage.getItem(expireTimeKey);
+      if (!expireTime) {
+        console.warn(`No ${logPrefix} token found in storage.`);
+        return null;
+      }
+
+      const expire = moment(expireTime).subtract(5, "minutes");
+      const now = moment();
+
+      if (now.isSameOrAfter(expire)) {
+        console.log(`Refreshing ${logPrefix} token`);
+        const refreshToken = await AsyncStorage.getItem(refreshTokenKey);
+        if (!refreshToken) {
+          console.warn(`No refresh token available for ${logPrefix}.`);
+          return null;
+        }
+
+        const refreshResult = await AuthSession.refreshAsync(
+          {
+            clientId: AuthConfig.appId,
+            refreshToken,
+            scopes,
+          },
+          discovery
+        );
+
+        if (!refreshResult?.accessToken) {
+          console.error(
+            `Failed to refresh ${logPrefix} access token.`,
+            refreshResult
+          );
+          return null;
+        }
+
+        const newExpirationDate = moment()
+          .add(refreshResult.expiresIn, "seconds")
+          .toISOString();
+
+        await AsyncStorage.setItem(tokenKey, refreshResult.accessToken);
+        if (refreshResult.refreshToken) {
+          await AsyncStorage.setItem(
+            refreshTokenKey,
+            refreshResult.refreshToken
+          );
+        }
+        await AsyncStorage.setItem(expireTimeKey, newExpirationDate);
+
+        return refreshResult.accessToken;
+      }
+
+      const token = await AsyncStorage.getItem(tokenKey);
+      if (!token) {
+        console.warn(`${logPrefix} token not found in storage.`);
+        return null;
+      }
+
+      return token;
+    } catch (error) {
+      console.error(`Get ${logPrefix} token error:`, error);
+      return null;
+    }
+  };
+
+  // Método para obtener token de la API personalizada
+  static getApiAccessTokenAsync = () =>
+    AuthManager.getAccessTokenAsync(AuthManager.AUTH_TYPES.API);
+
+  // Método para obtener token de Microsoft Graph
+  static getGraphAccessTokenAsync = () =>
+    AuthManager.getAccessTokenAsync(AuthManager.AUTH_TYPES.GRAPH);
+
+  // Método para cerrar sesión
   static signOutAsync = async () => {
     try {
-      await AsyncStorage.removeItem("apiToken");
-      await AsyncStorage.removeItem("apiRefreshToken");
-      await AsyncStorage.removeItem("apiExpireTime");
-      await AsyncStorage.removeItem("graphToken");
-      await AsyncStorage.removeItem("graphRefreshToken");
-      await AsyncStorage.removeItem("graphExpireTime");
+      const keysToRemove = [
+        "apiToken",
+        "apiRefreshToken",
+        "apiExpireTime",
+        "graphToken",
+        "graphRefreshToken",
+        "graphExpireTime",
+      ];
+      await Promise.all(
+        keysToRemove.map((key) => AsyncStorage.removeItem(key))
+      );
     } catch (error) {
       console.error("Sign-out error:", error);
       throw error;
-    }
-  };
-
-  // Obtener token para la API personalizada
-  static getAccessTokenAsync = async () => {
-    try {
-      const expireTime = await AsyncStorage.getItem("apiExpireTime");
-      if (!expireTime) {
-        console.warn("No API token found in storage.");
-        return null;
-      }
-
-      const expire = moment(expireTime).subtract(5, "minutes");
-      const now = moment();
-
-      if (now.isSameOrAfter(expire)) {
-        console.log("Refreshing API token");
-        const refreshToken = await AsyncStorage.getItem("apiRefreshToken");
-        if (!refreshToken) {
-          console.warn("No refresh token available for API.");
-          return null;
-        }
-
-        const refreshResult = await AuthSession.refreshAsync(
-          {
-            clientId: AuthConfig.appId,
-            refreshToken,
-            scopes: AuthConfig.apiScopes,
-          },
-          discovery
-        );
-
-        if (!refreshResult?.accessToken) {
-          console.error("Failed to refresh API access token.", refreshResult);
-          return null;
-        }
-
-        const newExpirationDate = moment()
-          .add(refreshResult.expiresIn, "seconds")
-          .toISOString();
-
-        await AsyncStorage.setItem("apiToken", refreshResult.accessToken);
-        if (refreshResult.refreshToken) {
-          await AsyncStorage.setItem(
-            "apiRefreshToken",
-            refreshResult.refreshToken
-          );
-        }
-        await AsyncStorage.setItem("apiExpireTime", newExpirationDate);
-
-        return refreshResult.accessToken;
-      }
-
-      const token = await AsyncStorage.getItem("apiToken");
-      if (!token) {
-        console.warn("API token not found in storage.");
-        return null;
-      }
-
-      return token;
-    } catch (error) {
-      console.error("Get API token error:", error);
-      return null;
-    }
-  };
-
-  // Obtener token para Microsoft Graph
-  static getGraphAccessTokenAsync = async () => {
-    try {
-      const expireTime = await AsyncStorage.getItem("graphExpireTime");
-      if (!expireTime) {
-        console.warn("No Graph token found in storage.");
-        return null;
-      }
-
-      const expire = moment(expireTime).subtract(5, "minutes");
-      const now = moment();
-
-      if (now.isSameOrAfter(expire)) {
-        console.log("Refreshing Graph token");
-        const refreshToken = await AsyncStorage.getItem("graphRefreshToken");
-        if (!refreshToken) {
-          console.warn("No refresh token available for Graph.");
-          return null;
-        }
-
-        const refreshResult = await AuthSession.refreshAsync(
-          {
-            clientId: AuthConfig.appId,
-            refreshToken,
-            scopes: AuthConfig.graphScopes,
-          },
-          discovery
-        );
-
-        if (!refreshResult?.accessToken) {
-          console.error("Failed to refresh Graph access token.", refreshResult);
-          return null;
-        }
-
-        const newExpirationDate = moment()
-          .add(refreshResult.expiresIn, "seconds")
-          .toISOString();
-
-        await AsyncStorage.setItem("graphToken", refreshResult.accessToken);
-        if (refreshResult.refreshToken) {
-          await AsyncStorage.setItem(
-            "graphRefreshToken",
-            refreshResult.refreshToken
-          );
-        }
-        await AsyncStorage.setItem("graphExpireTime", newExpirationDate);
-
-        return refreshResult.accessToken;
-      }
-
-      const token = await AsyncStorage.getItem("graphToken");
-      if (!token) {
-        console.warn("Graph token not found in storage.");
-        return null;
-      }
-
-      return token;
-    } catch (error) {
-      console.error("Get Graph token error:", error);
-      return null;
     }
   };
 }

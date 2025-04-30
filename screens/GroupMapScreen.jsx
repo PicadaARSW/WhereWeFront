@@ -37,7 +37,6 @@ import PropTypes from "prop-types";
 const GroupMapScreen = ({ route, navigation }) => {
   const { groupId } = route.params;
   const { id: userId, userPhoto } = useContext(UserContext);
-  const [pushToken, setPushToken] = useState(null);
   const [locations, setLocations] = useState({});
   const [socket, setSocket] = useState(null);
   const [favoritePlaces, setFavoritePlaces] = useState([]);
@@ -56,13 +55,11 @@ const GroupMapScreen = ({ route, navigation }) => {
     longitudeDelta: 0.01,
   });
   const [connectionStatus, setConnectionStatus] = useState("Conectando...");
-  const [isConnecting, setIsConnecting] = useState(true);
   const [showUserCard, setShowUserCard] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [batteryLevel, setBatteryLevel] = useState(100);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
-  const [centerOnUser, setCenterOnUser] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingPlace, setEditingPlace] = useState(null);
   const mapRef = useRef(null);
@@ -85,7 +82,6 @@ const GroupMapScreen = ({ route, navigation }) => {
   const fetchUserMetadata = async (userId) => {
     try {
       const response = await ApiClient(`:8084/api/v1/users/${userId}`);
-
       if (response.ok) {
         const userData = await response.json();
         setUserMetadata((prev) => ({
@@ -106,7 +102,6 @@ const GroupMapScreen = ({ route, navigation }) => {
       const response = await ApiClient(
         `:8086/api/v1/favoritePlaces/${groupId}`
       );
-
       if (response.ok) {
         const places = await response.json();
         setFavoritePlaces(places);
@@ -116,124 +111,160 @@ const GroupMapScreen = ({ route, navigation }) => {
     }
   };
 
+  const requestLocationPermissions = async () => {
+    const { status: foregroundStatus } =
+      await Location.requestForegroundPermissionsAsync();
+    if (foregroundStatus !== "granted") {
+      showCustomAlert(
+        "Permiso denegado",
+        "Necesitamos permisos de ubicación en primer plano.",
+        [{ text: "OK", onPress: () => {} }]
+      );
+      setErrorMessage("Permisos de ubicación en primer plano no concedidos");
+      setIsLoading(false);
+      return false;
+    }
+
+    const { status: backgroundStatus } =
+      await Location.requestBackgroundPermissionsAsync();
+    if (backgroundStatus !== "granted") {
+      showCustomAlert(
+        "Permiso denegado",
+        "Necesitamos permisos de ubicación en segundo plano para compartir tu ubicación mientras usas otras aplicaciones.",
+        [{ text: "OK", onPress: () => {} }]
+      );
+      setErrorMessage("Permisos de ubicación en segundo plano no concedidos");
+      setIsLoading(false);
+      return false;
+    }
+    return true;
+  };
+
+  const getCurrentPosition = async () => {
+    try {
+      const position = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+      return {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      };
+    } catch (error) {
+      console.warn("Falling back to default location:", error);
+      return { latitude: 4.60971, longitude: -74.08175 };
+    }
+  };
+
+  const connectWithRetry = async (socketInstance, maxRetries = 3) => {
+    let retryCount = 0;
+    while (retryCount <= maxRetries) {
+      try {
+        setConnectionStatus(`Conectando${".".repeat(retryCount + 1)}`);
+        await socketInstance.connect();
+        setConnectionStatus("Conectado");
+        setIsLoading(false);
+        return true;
+      } catch (error) {
+        retryCount++;
+        if (retryCount <= maxRetries) {
+          setConnectionStatus(`Reintentando (${retryCount}/${maxRetries})...`);
+          await new Promise((r) => setTimeout(r, 2000));
+        } else {
+          throw error;
+        }
+      }
+    }
+  };
+
+  const handleLocationUpdate = (locationData) => {
+    if (!userMetadata[locationData.userId])
+      fetchUserMetadata(locationData.userId);
+    if (locationData.status === "inactive") {
+      setInactiveUsers((prev) => new Set(prev).add(locationData.userId));
+    } else {
+      setInactiveUsers((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(locationData.userId);
+        return newSet;
+      });
+    }
+    setLocations((prev) => ({
+      ...prev,
+      [locationData.userId]: {
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
+        userId: locationData.userId,
+        timestamp: new Date().getTime(),
+        accuracy: locationData.accuracy || 0,
+        speed: locationData.speed || 0,
+        heading: locationData.heading || 0,
+        batteryLevel: locationData.batteryLevel || 100,
+      },
+    }));
+  };
+
+  const handleNewFavoritePlace = (placeData) => {
+    setFavoritePlaces((prev) => [...prev, placeData]);
+  };
+
+  const handleFavoritePlaceEdited = (placeData) => {
+    setFavoritePlaces((prev) =>
+      prev.map((place) =>
+        place.id === placeData.id ? { ...place, ...placeData } : place
+      )
+    );
+  };
+
+  const handleFavoritePlaceDeleted = (placeData) => {
+    setFavoritePlaces((prev) =>
+      prev.filter((place) => place.id !== placeData.id)
+    );
+  };
+
+  const setupSocketCallbacks = (socketInstance) => {
+    socketInstance.setLocationCallback(handleLocationUpdate);
+    socketInstance.subscribeToFavoritePlaces(handleNewFavoritePlace);
+    socketInstance.setFavoritePlaceEditedCallback(handleFavoritePlaceEdited);
+    socketInstance.setFavoritePlaceDeletedCallback(handleFavoritePlaceDeleted);
+  };
+
+  const handleConnectionError = (error) => {
+    console.error("Error configurando conexión:", error);
+    setConnectionStatus("Error de conexión");
+    setErrorMessage("No se pudo conectar al servidor");
+    setIsLoading(false);
+    showCustomAlert("Error de conexión", "No se pudo conectar al servidor.", [
+      { text: "OK", onPress: () => {} },
+    ]);
+  };
+
   useEffect(() => {
     const setupConnection = async () => {
       setIsLoading(true);
       setErrorMessage(null);
 
       try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-          showCustomAlert(
-            "Permiso denegado",
-            "Necesitamos permisos de ubicación.",
-            [{ text: "OK", onPress: () => {} }]
-          );
-          setErrorMessage("Permisos de ubicación no concedidos");
-          setIsLoading(false);
-          return;
-        }
+        const permissionsGranted = await requestLocationPermissions();
+        if (!permissionsGranted) return;
 
-        const position = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.High,
-        }).catch((error) => {
-          console.warn("Falling back to default location:", error);
-          return { coords: { latitude: 4.60971, longitude: -74.08175 } };
-        });
-
+        const position = await getCurrentPosition();
         const newRegion = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
+          latitude: position.latitude,
+          longitude: position.longitude,
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         };
         setInitialRegion(newRegion);
 
         const socketInstance = new LocationSocket(groupId);
-        let retryCount = 0;
-        const maxRetries = 3;
-
-        const connectWithRetry = async () => {
-          try {
-            setConnectionStatus(`Conectando${".".repeat(retryCount + 1)}`);
-            await socketInstance.connect();
-            setConnectionStatus("Conectado");
-            setIsConnecting(false);
-            setIsLoading(false);
-            return true;
-          } catch (error) {
-            retryCount++;
-            if (retryCount <= maxRetries) {
-              setConnectionStatus(
-                `Reintentando (${retryCount}/${maxRetries})...`
-              );
-              await new Promise((r) => setTimeout(r, 2000));
-              return connectWithRetry();
-            }
-            throw error;
-          }
-        };
-
         await fetchUserMetadata(userId);
         await fetchFavoritePlaces();
-        await connectWithRetry();
+        await connectWithRetry(socketInstance);
 
-        socketInstance.setLocationCallback((locationData) => {
-          if (!userMetadata[locationData.userId])
-            fetchUserMetadata(locationData.userId);
-          if (locationData.status === "inactive") {
-            setInactiveUsers((prev) => new Set(prev).add(locationData.userId));
-          } else {
-            setInactiveUsers((prev) => {
-              const newSet = new Set(prev);
-              newSet.delete(locationData.userId);
-              return newSet;
-            });
-          }
-          setLocations((prev) => ({
-            ...prev,
-            [locationData.userId]: {
-              latitude: locationData.latitude,
-              longitude: locationData.longitude,
-              userId: locationData.userId,
-              timestamp: new Date().getTime(),
-              accuracy: locationData.accuracy || 0,
-              speed: locationData.speed || 0,
-              heading: locationData.heading || 0,
-              batteryLevel: locationData.batteryLevel || 100,
-            },
-          }));
-        });
-
-        socketInstance.subscribeToFavoritePlaces((placeData) => {
-          setFavoritePlaces((prev) => [...prev, placeData]);
-        });
-
-        socketInstance.setFavoritePlaceEditedCallback((placeData) => {
-          setFavoritePlaces((prev) =>
-            prev.map((place) =>
-              place.id === placeData.id ? { ...place, ...placeData } : place
-            )
-          );
-        });
-
-        socketInstance.setFavoritePlaceDeletedCallback((placeData) => {
-          setFavoritePlaces((prev) =>
-            prev.filter((place) => place.id !== placeData.id)
-          );
-        });
-
+        setupSocketCallbacks(socketInstance);
         setSocket(socketInstance);
       } catch (error) {
-        console.error("Error configurando conexión:", error);
-        setConnectionStatus("Error de conexión");
-        setErrorMessage("No se pudo conectar al servidor");
-        setIsLoading(false);
-        showCustomAlert(
-          "Error de conexión",
-          "No se pudo conectar al servidor.",
-          [{ text: "OK", onPress: () => {} }]
-        );
+        handleConnectionError(error);
       }
     };
 
@@ -248,12 +279,11 @@ const GroupMapScreen = ({ route, navigation }) => {
   useEffect(() => {
     const setupNotifications = async () => {
       const token = await registerForPushNotificationsAsync();
-      setPushToken(token);
 
       if (token) {
         await ApiClient(":8086/api/v1/users/push-token", "POST", {
           userId,
-          pushToken: pushToken,
+          pushToken: token,
           groupId,
         });
       }
@@ -304,7 +334,7 @@ const GroupMapScreen = ({ route, navigation }) => {
             [userId]: { ...locationData, timestamp: new Date().getTime() },
           }));
 
-          if (socket.connected) socket.sendLocation(locationData);
+          if (socket?.connected) socket.sendLocation(locationData);
         }
       );
 
@@ -562,7 +592,6 @@ const GroupMapScreen = ({ route, navigation }) => {
 
   const centerMapOnAll = () => {
     if (Object.keys(locations).length > 0 && mapRef.current) {
-      setCenterOnUser(false);
       const coords = Object.values(locations).map((loc) => ({
         latitude: loc.latitude,
         longitude: loc.longitude,
@@ -583,7 +612,6 @@ const GroupMapScreen = ({ route, navigation }) => {
 
   const centerMapOnUser = () => {
     if (locations[userId] && mapRef.current) {
-      setCenterOnUser(true);
       mapRef.current.animateToRegion(
         {
           latitude: locations[userId].latitude,
@@ -667,7 +695,6 @@ const GroupMapScreen = ({ route, navigation }) => {
         showsCompass={true}
         showsScale={true}
         rotateEnabled={true}
-        onPanDrag={() => setCenterOnUser(false)}
       >
         {Object.entries(locations).map(([locUserId, location]) => (
           <React.Fragment key={locUserId}>

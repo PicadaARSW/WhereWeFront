@@ -29,6 +29,59 @@ const profilePictures = {
   "profile10.jpg": require("./images/Icon10.png"),
 };
 
+const headerOptions = {
+  headerShown: true,
+  headerStyle: {
+    backgroundColor: "#276b80",
+  },
+  headerTintColor: "white",
+  headerTitleStyle: {
+    fontWeight: "bold",
+  },
+};
+
+const getScreens = (isLoading, userToken) => {
+  if (isLoading) {
+    return <Stack.Screen name="Loading" component={AuthLoadingScreen} />;
+  }
+
+  if (userToken == null) {
+    return <Stack.Screen name="SignIn" component={SignInScreen} />;
+  }
+
+  return (
+    <>
+      <Stack.Screen name="Main" component={MainScreen} />
+      <Stack.Screen name="Groups" component={GroupsScreen} />
+      <Stack.Screen
+        name="GroupDetailScreen"
+        component={GroupDetailScreen}
+        options={{
+          ...headerOptions,
+          headerTitle: "Detalles del Grupo",
+        }}
+      />
+      <Stack.Screen name="GroupMapScreen" component={GroupMapScreen} />
+      <Stack.Screen
+        name="ProfilePictureSettings"
+        component={ProfilePictureSettings}
+        options={{
+          ...headerOptions,
+          headerTitle: "Editar Foto de Perfil",
+        }}
+      />
+      <Stack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{
+          ...headerOptions,
+          headerTitle: "Configurar Perfil",
+        }}
+      />
+    </>
+  );
+};
+
 export default function App() {
   const [state, dispatch] = useReducer(
     (prevState, action) => {
@@ -125,7 +178,7 @@ export default function App() {
             });
           }
           dispatch({ type: "SIGN_IN", token });
-          return token; // Devolver el token para uso posterior
+          return token;
         } catch (error) {
           console.error("Sign-in error:", error);
           throw error;
@@ -156,65 +209,7 @@ export default function App() {
       <UserProvider>
         <NavigationContainer>
           <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {state.isLoading ? (
-              <Stack.Screen name="Loading" component={AuthLoadingScreen} />
-            ) : state.userToken == null ? (
-              <Stack.Screen name="SignIn" component={SignInScreen} />
-            ) : (
-              <>
-                <Stack.Screen name="Main" component={MainScreen} />
-                <Stack.Screen name="Groups" component={GroupsScreen} />
-                <Stack.Screen
-                  name="GroupDetailScreen"
-                  component={GroupDetailScreen}
-                  options={{
-                    headerShown: true,
-                    headerTitle: "Detalles del Grupo",
-                    headerStyle: {
-                      backgroundColor: "#276b80",
-                    },
-                    headerTintColor: "white",
-                    headerTitleStyle: {
-                      fontWeight: "bold",
-                    },
-                  }}
-                />
-                <Stack.Screen
-                  name="GroupMapScreen"
-                  component={GroupMapScreen}
-                />
-                <Stack.Screen
-                  name="ProfilePictureSettings"
-                  component={ProfilePictureSettings}
-                  options={{
-                    headerShown: true,
-                    headerTitle: "Editar Foto de Perfil",
-                    headerStyle: {
-                      backgroundColor: "#276b80",
-                    },
-                    headerTintColor: "white",
-                    headerTitleStyle: {
-                      fontWeight: "bold",
-                    },
-                  }}
-                />
-                <Stack.Screen
-                  name="EditProfile"
-                  component={EditProfileScreen}
-                  options={{
-                    headerShown: true,
-                    headerTitle: "Configurar Perfil",
-                    headerStyle: {
-                      backgroundColor: "#276b80",
-                    },
-                    headerTintColor: "white",
-                    headerTitleStyle: {
-                      fontWeight: "bold",
-                    },
-                  }}
-                />
-              </>
-            )}
+            {getScreens(state.isLoading, state.userToken)}
           </Stack.Navigator>
         </NavigationContainer>
       </UserProvider>

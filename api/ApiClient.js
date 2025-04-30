@@ -1,5 +1,5 @@
 import { AuthManager } from "../auth/AuthManager";
-const BASEURL = "http://192.168.1.14";
+const BASEURL = "http://192.168.50.219";
 export const ApiClient = async (url, method = "GET", body = null) => {
   try {
     // Obtener el token de almacenamiento local
@@ -23,7 +23,6 @@ export const ApiClient = async (url, method = "GET", body = null) => {
 
     return response;
   } catch (error) {
-    console.error("Error en ApiClient:", error);
-    throw error;
+    console.log("Error en ApiClient:", error);
   }
 };

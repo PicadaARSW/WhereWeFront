@@ -259,7 +259,7 @@ const HomeComponent = () => {
         visible: true,
         type: "error",
         title: "Error de Conexión",
-        message: "Hubo un problema al conectarse con el servidor.",
+        message: "Hubo un error al crear el grupo.",
       });
     }
   };
@@ -291,47 +291,14 @@ const HomeComponent = () => {
         });
         setIsJoinModalVisible(false);
         setGroupCode("");
-      } else {
-        const errorMessage = await response.text();
-        if (response.status === 500) {
-          if (errorMessage.includes("El usuario ya pertenece al grupo")) {
-            setAlert({
-              visible: true,
-              type: "default",
-              title: "Información",
-              message: "Ya perteneces a este grupo.",
-            });
-          } else if (errorMessage.includes("El grupo no existe")) {
-            setAlert({
-              visible: true,
-              type: "error",
-              title: "Grupo No Encontrado",
-              message: "El grupo no existe.",
-            });
-          } else {
-            setAlert({
-              visible: true,
-              type: "error",
-              title: "Error Inesperado",
-              message: "Ocurrió un error inesperado.",
-            });
-          }
-        } else {
-          setAlert({
-            visible: true,
-            type: "error",
-            title: "Error",
-            message: "No se pudo unir al grupo.",
-          });
-        }
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.log("Error:", error);
       setAlert({
         visible: true,
         type: "error",
         title: "Error de Conexión",
-        message: "Hubo un problema al conectarse con el servidor.",
+        message: "Hubo un problema inesperado.",
       });
     }
   };

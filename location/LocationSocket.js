@@ -17,87 +17,100 @@ class LocationSocket {
     this.onFavoritePlaceDeleted = null;
   }
 
-  async connect() {
-    return new Promise((resolve, reject) => {
-      const tryConnect = async (attempts = 0) => {
-        if (attempts >= 3) {
-          reject(new Error("Max connection attempts reached"));
-          return;
-        }
+  // Función auxiliar para obtener el token de acceso
+  async getAccessToken(attempts) {
+    if (attempts >= 3) {
+      throw new Error("Max connection attempts reached");
+    }
 
+    const accessToken = await AuthManager.getAccessTokenAsync();
+    if (!accessToken) {
+      throw new Error("No se pudo obtener el token de acceso.");
+    }
+    return accessToken;
+  }
+
+  // Función auxiliar para manejar la suscripción a ubicaciones
+  subscribeToLocation() {
+    this.locationSubscription = this.stompClient.subscribe(
+      `/topic/location/${this.groupId}`,
+      (message) => {
         try {
-          const accessToken = await AuthManager.getAccessTokenAsync();
-          if (!accessToken) {
-            throw new Error("No se pudo obtener el token de acceso.");
+          const locationData = JSON.parse(message.body);
+          console.log("Location received:", locationData);
+          if (this.onLocationReceived) {
+            this.onLocationReceived(locationData);
           }
+        } catch (error) {
+          console.error("Error parsing location data:", error);
+        }
+      }
+    );
+  }
 
-          const socket = new SockJS("http://192.168.1.14:8086/ws");
-          this.stompClient = Stomp.over(socket);
+  // Función auxiliar para manejar el cierre inesperado del WebSocket
+  handleSocketClose(resolve, reject) {
+    return (event) => {
+      console.error("WebSocket closed:", {
+        code: event.code,
+        reason: event.reason,
+        wasClean: event.wasClean,
+      });
+      reject(
+        new Error(
+          `WebSocket closed with code ${event.code}, reason: ${event.reason}`
+        )
+      );
+    };
+  }
 
-          // Habilitar depuración en STOMP
-          this.stompClient.debug = (str) => {
-            console.log("STOMP Debug:", str);
-          };
+  // Función auxiliar para manejar errores de conexión
+  handleConnectionError(error, tryConnect, attempts) {
+    console.error("STOMP connection error:", error);
+    console.log("Error details:", JSON.stringify(error, null, 2));
+    this.connected = false;
+    if (error.message?.includes("401")) {
+      console.log("Token expired, retrying with new token...");
+      setTimeout(() => tryConnect(attempts + 1), 1000);
+    } else {
+      throw error;
+    }
+  }
+
+  async connect() {
+    const tryConnect = async (attempts = 0) => {
+      try {
+        const accessToken = await this.getAccessToken(attempts);
+
+        const socket = new SockJS("http://192.168.50.219:8086/ws");
+        this.stompClient = Stomp.over(socket);
+
+        // Habilitar depuración en STOMP
+        this.stompClient.debug = (str) => {
+          console.log("STOMP Debug:", str);
+        };
+
+        return new Promise((resolve, reject) => {
+          socket.onclose = this.handleSocketClose(resolve, reject);
 
           this.stompClient.connect(
-            {
-              Authorization: `Bearer ${accessToken}`,
-            },
+            { Authorization: `Bearer ${accessToken}` },
             () => {
               console.log("Connected to STOMP server");
               this.connected = true;
-
-              this.locationSubscription = this.stompClient.subscribe(
-                `/topic/location/${this.groupId}`,
-                (message) => {
-                  try {
-                    const locationData = JSON.parse(message.body);
-                    console.log("Location received:", locationData);
-                    if (this.onLocationReceived) {
-                      this.onLocationReceived(locationData);
-                    }
-                  } catch (error) {
-                    console.error("Error parsing location data:", error);
-                  }
-                }
-              );
-
+              this.subscribeToLocation();
               resolve();
             },
-            (error) => {
-              console.error("STOMP connection error:", error);
-              console.log("Error details:", JSON.stringify(error, null, 2));
-              this.connected = false;
-              if (error.message?.includes("401")) {
-                console.log("Token expired, retrying with new token...");
-                setTimeout(() => tryConnect(attempts + 1), 1000);
-              } else {
-                reject(error);
-              }
-            }
+            (error) => this.handleConnectionError(error, tryConnect, attempts)
           );
+        });
+      } catch (error) {
+        console.error("Error setting up STOMP connection:", error);
+        throw error;
+      }
+    };
 
-          // Manejar cierre inesperado del WebSocket
-          socket.onclose = (event) => {
-            console.error("WebSocket closed:", {
-              code: event.code,
-              reason: event.reason,
-              wasClean: event.wasClean,
-            });
-            reject(
-              new Error(
-                `WebSocket closed with code ${event.code}, reason: ${event.reason}`
-              )
-            );
-          };
-        } catch (error) {
-          console.error("Error setting up STOMP connection:", error);
-          reject(error);
-        }
-      };
-
-      tryConnect();
-    });
+    return tryConnect();
   }
 
   sendLocation(locationData) {

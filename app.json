@@ -17,9 +17,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "arws.WhereWe",
       "infoPlist": {
-        "UIBackgroundModes": [
-          "remote-notification"
-        ]
+        "UIBackgroundModes": ["remote-notification"]
       }
     },
     "android": {
@@ -31,7 +29,10 @@
       "googleServicesFile": "./google-services.json",
       "useNextNotificationsApi": true,
       "permissions": [
-        "RECEIVE_BOOT_COMPLETED"
+        "RECEIVE_BOOT_COMPLETED",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION"
       ]
     },
     "web": {
@@ -43,9 +44,7 @@
         {
           "icon": "./assets/notification-icon.png",
           "color": "#276b80",
-          "sounds": [
-            "./assets/notification-sound.wav"
-          ],
+          "sounds": ["./assets/notification-sound.wav"],
           "mode": "production"
         }
       ],

@@ -43,12 +43,12 @@ const EditProfileScreen = ({ navigation }) => {
             try {
               // Call API to leave all groups
               await ApiClient(
-                `:8085/api/v1/groups/leave-all/${userContext.id}`,
+                `groups/api/v1/groups/leave-all/${userContext.id}`,
                 "DELETE"
               );
               // Call API to delete user account
               await ApiClient(
-                `:8084/api/v1/users/delete/${userContext.id}`,
+                `users/api/v1/users/delete/${userContext.id}`,
                 "DELETE"
               );
               // Sign out and redirect to login

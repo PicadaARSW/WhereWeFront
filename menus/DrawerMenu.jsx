@@ -1,53 +1,21 @@
-import React, { useContext } from "react";
-import { Image, Text, View } from "react-native";
-import {
-  createDrawerNavigator,
-  DrawerContentScrollView,
-  DrawerItem,
-  DrawerItemList,
-} from "@react-navigation/drawer";
+import React, { useContext, useCallback } from "react";
+import { createDrawerNavigator } from "@react-navigation/drawer";
 import { AuthContext } from "../AuthContext";
-import { UserContext } from "../UserContext";
 import HomeScreen from "../screens/HomeScreen";
 import GroupsScreen from "../screens/GroupsScreen";
 import EditProfileScreen from "../screens/EditProfileScreen";
-import { GraphManager } from "../graph/GraphManager";
-import styles from "../styles/DrawerMenuStyles";
+import CustomDrawerContent from "./CustomDrawerContent";
 
 const Drawer = createDrawerNavigator();
 
-const CustomDrawerContent = (props) => {
-  const userContext = useContext(UserContext);
-
-  return (
-    <DrawerContentScrollView {...props}>
-      <View style={styles.profileView}>
-        <Image
-          source={
-            userContext?.userPhoto || require("../images/no-profile-pic.png")
-          }
-          resizeMode="contain"
-          style={styles.profilePhoto}
-        />
-        <Text style={styles.profileUserName}>
-          {userContext?.userFullName || "Usuario"}
-        </Text>
-        <Text style={styles.profileEmail}>
-          {userContext?.userEmail || "Correo no disponible"}
-        </Text>
-      </View>
-      <DrawerItemList {...props} />
-      <DrawerItem
-        labelStyle={[styles.signOutLabel]}
-        label="Cerrar Sesión"
-        onPress={props.signOut}
-      />
-    </DrawerContentScrollView>
-  );
-};
-
 export default function DrawerMenuContent() {
   const authContext = useContext(AuthContext);
+
+  // Memorizamos la función drawerContent con useCallback
+  const renderDrawerContent = useCallback(
+    (props) => <CustomDrawerContent {...props} signOut={authContext.signOut} />,
+    [authContext.signOut] // Dependencia: authContext.signOut
+  );
 
   return (
     <Drawer.Navigator
@@ -59,9 +27,7 @@ export default function DrawerMenuContent() {
         },
         headerTintColor: "white",
       }}
-      drawerContent={(props) => (
-        <CustomDrawerContent {...props} signOut={authContext.signOut} />
-      )}
+      drawerContent={renderDrawerContent}
     >
       <Drawer.Screen
         name="Home"

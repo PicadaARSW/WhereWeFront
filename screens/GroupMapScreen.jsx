@@ -81,7 +81,7 @@ const GroupMapScreen = ({ route, navigation }) => {
 
   const fetchUserMetadata = async (userId) => {
     try {
-      const response = await ApiClient(`users/api/v1/users/${userId}`);
+      const response = await ApiClient(`:8084/api/v1/users/${userId}`);
       if (response.ok) {
         const userData = await response.json();
         setUserMetadata((prev) => ({
@@ -100,7 +100,7 @@ const GroupMapScreen = ({ route, navigation }) => {
   const fetchFavoritePlaces = async () => {
     try {
       const response = await ApiClient(
-        `locations/api/v1/favoritePlaces/${groupId}`
+        `:8086/api/v1/favoritePlaces/${groupId}`
       );
       if (response.ok) {
         const places = await response.json();
@@ -281,7 +281,7 @@ const GroupMapScreen = ({ route, navigation }) => {
       const token = await registerForPushNotificationsAsync();
 
       if (token) {
-        await ApiClient("locations/api/v1/users/push-token", "POST", {
+        await ApiClient(":8086/api/v1/users/push-token", "POST", {
           userId,
           pushToken: token,
           groupId,

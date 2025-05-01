@@ -15,7 +15,7 @@ const GroupsScreen = () => {
   const fetchGroups = useCallback(async () => {
     try {
       setLoading(true); // Mostrar el loading mientras se obtienen los datos
-      const response = await ApiClient(`groups/api/v1/groups/user/${id}`);
+      const response = await ApiClient(`:8085/api/v1/groups/user/${id}`);
 
       if (response.ok) {
         const data = await response.json();

@@ -231,7 +231,7 @@ const HomeComponent = () => {
     }
 
     try {
-      const response = await ApiClient("groups/api/v1/groups", "POST", {
+      const response = await ApiClient(":8085/api/v1/groups", "POST", {
         admin: userContext?.id,
         nameGroup: nameGroup,
       });
@@ -278,7 +278,7 @@ const HomeComponent = () => {
 
     try {
       const response = await ApiClient(
-        `groups/api/v1/groups/join/${groupCode}/${userContext?.id}`,
+        `:8085/api/v1/groups/join/${groupCode}/${userContext?.id}`,
         "POST"
       );
 

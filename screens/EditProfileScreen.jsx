@@ -41,7 +41,7 @@ const EditProfileScreen = ({ navigation }) => {
             try {
               // Call API to leave all groups
               await fetch(
-                `http://192.168.1.6:8085/api/v1/groups/leave-all/${userContext.id}`,
+                `http://192.168.1.8:8085/api/v1/groups/leave-all/${userContext.id}`,
                 {
                   method: "DELETE",
                   headers: { "Content-Type": "application/json" },
@@ -49,7 +49,7 @@ const EditProfileScreen = ({ navigation }) => {
               );
               // Call API to delete user account
               await fetch(
-                `http://192.168.1.6:8084/api/v1/users/delete/${userContext.id}`,
+                `http://192.168.1.8:8084/api/v1/users/delete/${userContext.id}`,
                 {
                   method: "DELETE",
                   headers: { "Content-Type": "application/json" },

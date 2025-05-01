@@ -22,7 +22,7 @@ export class GraphManager {
 
       // Obtener datos adicionales desde tu backend
       const backendResponse = await fetch(
-        `http://192.168.1.6:8084/api/v1/users/${user.id}`,
+        `http://192.168.1.8:8084/api/v1/users/${user.id}`,
         {
           method: "GET",
           headers: {

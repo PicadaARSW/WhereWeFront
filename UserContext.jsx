@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Image } from "react-native";
+import PropTypes from "prop-types";
 
 export const UserContext = React.createContext({
   userLoading: true,
@@ -13,6 +13,9 @@ export const UserContext = React.createContext({
 });
 
 export const UserProvider = ({ children }) => {
+  UserProvider.propTypes = {
+    children: PropTypes.node.isRequired,
+  };
   const [user, setUser] = React.useState({
     id: "",
     userLoading: true,
@@ -28,9 +31,12 @@ export const UserProvider = ({ children }) => {
     console.log("UserContext state:", user);
   }, [user]);
 
+  const contextValue = React.useMemo(
+    () => ({ ...user, setUser }),
+    [user, setUser]
+  );
+
   return (
-    <UserContext.Provider value={{ ...user, setUser }}>
-      {children}
-    </UserContext.Provider>
+    <UserContext.Provider value={contextValue}>{children}</UserContext.Provider>
   );
 };

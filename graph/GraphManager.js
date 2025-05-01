@@ -18,7 +18,7 @@ export class GraphManager {
         )
         .get();
 
-      const backendResponse = await ApiClient(`:8084/api/v1/users/${user.id}`);
+      const backendResponse = await ApiClient(`users/api/v1/users/${user.id}`);
 
       let profilePicture = require("../images/no-profile-pic.png");
       let backendUser = null;

@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, Button, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import styles from "../styles/GroupItemStyles"; 
+import PropTypes from "prop-types";
+import styles from "../styles/GroupItemStyles";
 const GroupItem = ({ group }) => {
   const navigation = useNavigation();
 
@@ -18,6 +19,12 @@ const GroupItem = ({ group }) => {
       </TouchableOpacity>
     </View>
   );
+};
+GroupItem.propTypes = {
+  group: PropTypes.shape({
+    nameGroup: PropTypes.string.isRequired,
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  }).isRequired,
 };
 
 export default GroupItem;

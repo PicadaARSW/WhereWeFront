@@ -25,7 +25,7 @@ const CustomAlert = ({ visible, title, message, buttons, onClose }) => {
                   button.style === "cancel" && styles.cancelButton,
                 ]}
                 onPress={() => {
-                  button.onPress && button.onPress();
+                  button.onPress?.();
                   onClose();
                 }}
               >

@@ -27,7 +27,7 @@ const ProfilePictureSettings = ({ navigation }) => {
   const updateProfilePicture = async (pictureURL) => {
     try {
       const response = await ApiClient(
-        `:8084/api/v1/users/${userContext.id}/profile-picture`,
+        `users/api/v1/users/${userContext.id}/profile-picture`,
         "PUT",
         { pictureUrl: pictureURL }
       );

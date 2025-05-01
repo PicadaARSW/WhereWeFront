@@ -28,7 +28,7 @@ const GroupDetailScreenContent = ({ route }) => {
   // Obtener detalles del grupo
   const fetchGroupDetails = async () => {
     try {
-      const groupResponse = await ApiClient(`:8085/api/v1/groups/${groupId}`);
+      const groupResponse = await ApiClient(`groups/api/v1/groups/${groupId}`);
       const groupData = await groupResponse.json();
       setGroupDetails(groupData);
       updateTimeUntilCodeUpdate(groupData.nextCodeUpdate);
@@ -79,7 +79,7 @@ const GroupDetailScreenContent = ({ route }) => {
         try {
           const memberPromises = groupDetails.members.map(async (memberId) => {
             const userResponse = await ApiClient(
-              `:8084/api/v1/users/${memberId}`
+              `users/api/v1/users/${memberId}`
             );
             const userData = await userResponse.json();
             return userData;
@@ -104,7 +104,7 @@ const GroupDetailScreenContent = ({ route }) => {
       if (groupDetails) {
         try {
           const adminResponse = await ApiClient(
-            `:8084/api/v1/users/${groupDetails.admin}`
+            `users/api/v1/users/${groupDetails.admin}`
           );
           const adminData = await adminResponse.json();
           setAdminName(adminData.userFullName);
@@ -145,7 +145,7 @@ const GroupDetailScreenContent = ({ route }) => {
   const handleLeaveGroup = async () => {
     try {
       const response = await ApiClient(
-        `:8085/api/v1/groups/leave/${groupId}/${id}`,
+        `groups/api/v1/groups/leave/${groupId}/${id}`,
         "DELETE"
       );
       if (response.ok) {

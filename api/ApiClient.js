@@ -1,5 +1,5 @@
 import { AuthManager } from "../auth/AuthManager";
-const BASEURL = "https://wherewe-apim.azure-api.net/";
+const BASEURL = "http://192.168.1.3";
 export const ApiClient = async (url, method = "GET", body = null) => {
   try {
     // Obtener el token de almacenamiento local

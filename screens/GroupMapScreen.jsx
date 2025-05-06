@@ -7,7 +7,7 @@ import { UserContext } from "../UserContext";
 import { Card, Divider } from "react-native-paper";
 import CustomAlert from "../components/CustomAlert";
 import styles from "../styles/GroupMapScreenStyles";
-import { registerForPushNotificationsAsync, setupNotificationListener} from "../PushNotificationManager";
+import { registerForPushNotificationsAsync, setupNotificationListener} from "../notification/PushNotificationManager";
 
 const profilePictures = {
   "profile1.jpg": require("../images/Icon1.png"),
@@ -73,7 +73,7 @@ const GroupMapScreen = ({ route, navigation }) => {
   const fetchUserMetadata = async (userId) => {
     try {
       const response = await fetch(
-        `http://192.168.1.8:8084/api/v1/users/${userId}`
+        `http://192.168.1.6:8084/api/v1/users/${userId}`
       );
       if (response.ok) {
         const userData = await response.json();
@@ -93,7 +93,7 @@ const GroupMapScreen = ({ route, navigation }) => {
   const fetchFavoritePlaces = async () => {
     try {
       const response = await fetch(
-        `http://192.168.1.8:8086/api/v1/favoritePlaces/${groupId}`
+        `http://192.168.1.6:8086/api/v1/favoritePlaces/${groupId}`
       );
       if (response.ok) {
         const places = await response.json();
@@ -242,7 +242,7 @@ const GroupMapScreen = ({ route, navigation }) => {
         if (token) {
             try {
                 console.log("Enviando token al backend...");
-                const response = await fetch("http://192.168.1.8:8086/api/v1/users/push-token", {
+                const response = await fetch("http://192.168.1.6:8086/api/v1/users/push-token", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ userId, pushToken: token, groupId }),

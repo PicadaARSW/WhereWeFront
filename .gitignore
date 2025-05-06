@@ -34,7 +34,5 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
-
-app.json
-eas.json
-google-services.json
+.idea
+.vscode

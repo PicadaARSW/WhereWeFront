@@ -202,7 +202,7 @@ const HomeComponent = () => {
     }
 
     try {
-      const response = await fetch("http://192.168.1.8:8085/api/v1/groups", {
+      const response = await fetch("http://192.168.1.6:8085/api/v1/groups", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -255,7 +255,7 @@ const HomeComponent = () => {
 
     try {
       const response = await fetch(
-        `http://192.168.1.8:8085/api/v1/groups/join/${groupCode}/${userContext?.id}`,
+        `http://192.168.1.6:8085/api/v1/groups/join/${groupCode}/${userContext?.id}`,
         {
           method: "POST",
           headers: {

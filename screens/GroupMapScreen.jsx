@@ -81,7 +81,7 @@ const GroupMapScreen = ({ route, navigation }) => {
 
   const fetchUserMetadata = async (userId) => {
     try {
-      const response = await ApiClient(`:8084/api/v1/users/${userId}`);
+      const response = await ApiClient(`users/api/v1/users/${userId}`);
       if (response.ok) {
         const userData = await response.json();
         setUserMetadata((prev) => ({
@@ -100,7 +100,7 @@ const GroupMapScreen = ({ route, navigation }) => {
   const fetchFavoritePlaces = async () => {
     try {
       const response = await ApiClient(
-        `:8086/api/v1/favoritePlaces/${groupId}`
+        `locations/api/v1/favoritePlaces/${groupId}`
       );
       if (response.ok) {
         const places = await response.json();
@@ -121,19 +121,6 @@ const GroupMapScreen = ({ route, navigation }) => {
         [{ text: "OK", onPress: () => {} }]
       );
       setErrorMessage("Permisos de ubicación en primer plano no concedidos");
-      setIsLoading(false);
-      return false;
-    }
-
-    const { status: backgroundStatus } =
-      await Location.requestBackgroundPermissionsAsync();
-    if (backgroundStatus !== "granted") {
-      showCustomAlert(
-        "Permiso denegado",
-        "Necesitamos permisos de ubicación en segundo plano para compartir tu ubicación mientras usas otras aplicaciones.",
-        [{ text: "OK", onPress: () => {} }]
-      );
-      setErrorMessage("Permisos de ubicación en segundo plano no concedidos");
       setIsLoading(false);
       return false;
     }
@@ -281,7 +268,7 @@ const GroupMapScreen = ({ route, navigation }) => {
       const token = await registerForPushNotificationsAsync();
 
       if (token) {
-        await ApiClient(":8086/api/v1/users/push-token", "POST", {
+        await ApiClient("locations/api/v1/users/push-token", "POST", {
           userId,
           pushToken: token,
           groupId,

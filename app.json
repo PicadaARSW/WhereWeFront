@@ -27,13 +27,24 @@
       },
       "package": "arws.WhereWe",
       "googleServicesFile": "./google-services.json",
-      "useNextNotificationsApi": true,
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDOqRqRMIIzLnB9WBU3e1SUOllDKuVxu5E"
+        }
+      },
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
+        "POST_NOTIFICATIONS",
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "ACCESS_BACKGROUND_LOCATION"
-      ]
+        "ACCESS_COARSE_LOCATION"
+      ],
+      "extra": {
+        "expo-doctor": {
+          "reactNativeDirectoryCheck": {
+            "listUnknownPackages": false
+          }
+        }
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -42,9 +53,8 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/notification-icon.png",
-          "color": "#276b80",
-          "sounds": ["./assets/notification-sound.wav"],
+          "icon": "./assets/notification_icon.png",
+          "sounds": ["./assets/notification_sound.wav"],
           "mode": "production"
         }
       ],
@@ -52,12 +62,17 @@
         "expo-build-properties",
         {
           "android": {
-            "compileSdkVersion": 33,
-            "targetSdkVersion": 33,
-            "buildToolsVersion": "33.0.0"
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "buildToolsVersion": "34.0.0"
           }
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "42e9906e-cf1f-4834-ab08-08f6f006d73c"
+      }
+    }
   }
 }

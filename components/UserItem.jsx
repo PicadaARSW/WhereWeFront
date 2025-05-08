@@ -14,7 +14,7 @@ const UserItem = ({ user, isAdmin, groupId, onExpel }) => {
   const handleExpel = async () => {
     try {
       const response = await ApiClient(
-        `:8085/api/v1/groups/expel/${groupId}/${user.id}/${id}`,
+        `groups/api/v1/groups/expel/${groupId}/${user.id}/${id}`,
         "DELETE"
       );
       if (response.ok) {

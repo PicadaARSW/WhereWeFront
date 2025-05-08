@@ -1,5 +1,4 @@
 {
-  "name": "wherewe",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -28,9 +27,7 @@
     "expo-notifications": "^0.29.14",
     "expo-status-bar": "~2.0.1",
     "expo-task-manager": "~12.0.6",
-    "firebase": "^11.6.0",
     "moment": "^2.30.1",
-    "moment-timezone": "^0.5.47",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "^0.76.9",
@@ -43,9 +40,7 @@
     "react-native-screens": "~4.4.0",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "~0.19.13",
-    "sockjs-client": "^1.6.1",
-    "wherewe": "file:",
-    "windows-iana": "^5.1.0"
+    "sockjs-client": "^1.6.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

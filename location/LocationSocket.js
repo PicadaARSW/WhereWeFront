@@ -82,7 +82,9 @@ class LocationSocket {
       try {
         const accessToken = await this.getAccessToken(attempts);
 
-        const socket = new SockJS("http://192.168.1.3:8086/ws");
+        const socket = new SockJS(
+          "https://wherewe-locations-h2gweqeafxaxe2g6.eastus-01.azurewebsites.net/ws"
+        );
         this.stompClient = Stomp.over(socket);
 
         // Habilitar depuración en STOMP

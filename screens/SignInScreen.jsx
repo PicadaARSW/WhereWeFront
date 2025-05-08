@@ -45,7 +45,7 @@ const SignInScreen = (props) => {
       console.log("Usuario:", userPayload);
 
       const response = await ApiClient(
-        ":8084/api/v1/users",
+        "users/api/v1/users",
         "POST",
         userPayload
       );

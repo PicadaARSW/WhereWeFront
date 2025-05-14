@@ -127,14 +127,6 @@ const GroupDetailScreenContent = ({ route }) => {
       return false;
     }
 
-    // Request background permissions (required for Android API 29+ and iOS)
-    let { status: backgroundStatus } =
-      await Location.requestBackgroundPermissionsAsync();
-    if (backgroundStatus !== "granted") {
-      console.error("Background location permission denied");
-      return false;
-    }
-
     return true;
   };
   useEffect(() => {

@@ -124,19 +124,6 @@ const GroupMapScreen = ({ route, navigation }) => {
       setIsLoading(false);
       return false;
     }
-
-    const { status: backgroundStatus } =
-      await Location.requestBackgroundPermissionsAsync();
-    if (backgroundStatus !== "granted") {
-      showCustomAlert(
-        "Permiso denegado",
-        "Necesitamos permisos de ubicación en segundo plano para compartir tu ubicación mientras usas otras aplicaciones.",
-        [{ text: "OK", onPress: () => {} }]
-      );
-      setErrorMessage("Permisos de ubicación en segundo plano no concedidos");
-      setIsLoading(false);
-      return false;
-    }
     return true;
   };
 

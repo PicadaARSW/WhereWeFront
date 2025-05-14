@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as AuthSession from "expo-auth-session";
 import moment from "moment";
 import { AuthConfig } from "./AuthConfig";
+import { Platform } from "react-native";
 
 // Configuración estática de los endpoints de Azure AD
 const discovery = {
@@ -10,7 +11,20 @@ const discovery = {
   tokenEndpoint: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
 };
 
-const redirectUri = AuthSession.makeRedirectUri({ useProxy: true });
+// Determine redirect URI based on environment
+const redirectUri = (() => {
+  if (Platform.OS === "web") {
+    return AuthSession.makeRedirectUri({ useProxy: true });
+  }
+  // For standalone APK, use custom scheme
+  if (!__DEV__) {
+    return "wherewe://redirect";
+  }
+  // For Expo Go/emulator, use proxy
+  return AuthSession.makeRedirectUri({ useProxy: true });
+})();
+
+console.log("Selected redirect URI:", redirectUri);
 console.log("Default redirect URI:", redirectUri);
 
 export class AuthManager {

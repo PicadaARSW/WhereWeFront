@@ -5,7 +5,6 @@ import { AuthContext } from "../AuthContext";
 import styles from "../styles/SigninScreenStyles";
 import { UserContext } from "../UserContext";
 import { GraphManager } from "../graph/GraphManager";
-import { ApiClient } from "../api/ApiClient";
 
 const SignInScreen = (props) => {
   const { signIn } = useContext(AuthContext);
@@ -32,33 +31,6 @@ const SignInScreen = (props) => {
         userTimeZone: user.userTimeZone,
         userPhoto: user.userPhoto || require("../images/no-profile-pic.png"),
       });
-
-      // Enviar la información del usuario al servicio de backend
-      const userPayload = {
-        id: user.id,
-        userFirstName: user.userFirstName,
-        userFullName: user.userFullName,
-        userEmail: user.userEmail,
-        userTimeZone: user.userTimeZone,
-      };
-
-      console.log("Usuario:", userPayload);
-
-      const response = await ApiClient(
-        "users/api/v1/users",
-        "POST",
-        userPayload
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-          `Error en la petición: ${response.status} - ${errorText}`
-        );
-      }
-
-      const responseData = await response.json();
-      console.log("Usuario guardado con éxito", responseData);
     } catch (error) {
       console.error("Error durante el inicio de sesión:", error);
       Alert.alert(

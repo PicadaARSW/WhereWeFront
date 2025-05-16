@@ -18,6 +18,18 @@ export class GraphManager {
         )
         .get();
 
+      // Crear el payload para registrar el usuario
+      const userPayload = {
+        id: user.id,
+        userFirstName: user.givenName,
+        userFullName: user.displayName,
+        userEmail: user.mail || user.userPrincipalName,
+        userTimeZone: user.mailboxSettings?.timeZone || "UTC",
+      };
+
+      // Hacer la petición POST para registrar al usuario
+      await ApiClient("users/api/v1/users", "POST", userPayload);
+
       const backendResponse = await ApiClient(`users/api/v1/users/${user.id}`);
 
       let profilePicture = require("../images/no-profile-pic.png");

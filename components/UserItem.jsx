@@ -33,10 +33,14 @@ const UserItem = ({ user, isAdmin, groupId, onExpel }) => {
 
   return (
     <>
-      <View style={styles.container}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.userName}>{user.userFullName}</Text>
-          <Text style={styles.userEmail}>{user.userEmail}</Text>
+      <View style={styles.container} testID="user-item-container">
+        <View style={{ flex: 1 }} testID="user-info-container">
+          <Text style={styles.userName} testID="user-name">
+            {user.userFullName}
+          </Text>
+          <Text style={styles.userEmail} testID="user-email">
+            {user.userEmail}
+          </Text>
         </View>
         {isAdmin && user.id !== id && (
           <IconButton
@@ -46,6 +50,7 @@ const UserItem = ({ user, isAdmin, groupId, onExpel }) => {
             size={20}
             onPress={confirmExpel}
             style={styles.expelButton}
+            testID="expel-button"
           />
         )}
       </View>
@@ -66,6 +71,7 @@ const UserItem = ({ user, isAdmin, groupId, onExpel }) => {
           },
         ]}
         onClose={() => setShowExpelAlert(false)}
+        testID="expel-alert"
       />
     </>
   );

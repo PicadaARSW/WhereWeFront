@@ -75,4 +75,66 @@ describe("UserItem Component", () => {
     );
     expect(mockOnExpel).toHaveBeenCalled();
   });
+
+  it("handles API failure when expelling user", async () => {
+    // Mock API failure
+    ApiClient.mockResolvedValue({ ok: false });
+
+    const { getByRole, getByText } = renderComponent();
+
+    // Trigger expel flow
+    fireEvent.press(getByRole("button"));
+    fireEvent.press(getByText("Expulsar"));
+
+    // Wait for promises to resolve
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // Check that API was called but onExpel wasn't
+    expect(ApiClient).toHaveBeenCalled();
+    expect(mockOnExpel).not.toHaveBeenCalled();
+  });
+
+  it("handles API errors when expelling user", async () => {
+    // Mock API throwing an error
+    ApiClient.mockRejectedValue(new Error("Network error"));
+
+    const { getByRole, getByText } = renderComponent();
+
+    // Trigger expel flow
+    fireEvent.press(getByRole("button"));
+    fireEvent.press(getByText("Expulsar"));
+
+    // Wait for promises to resolve
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // Check that API was called but onExpel wasn't
+    expect(ApiClient).toHaveBeenCalled();
+    expect(mockOnExpel).not.toHaveBeenCalled();
+  });
+
+  it("hides alert when cancel is pressed", () => {
+    const { getByRole, getByText, queryByText } = renderComponent();
+
+    // Show the alert
+    fireEvent.press(getByRole("button"));
+    expect(getByText(/¿Estás seguro/)).toBeTruthy();
+
+    // Press cancel
+    fireEvent.press(getByText("Cancelar"));
+
+    // Alert should be hidden (async behavior mocked by the test library)
+    expect(queryByText(/¿Estás seguro/)).toBeNull();
+  });
+
+  it("hides expel button when viewing own profile", () => {
+    // Use a user that matches the context ID (same user)
+    const selfUser = {
+      id: "admin123", // Same as the context ID
+      userFullName: "Self User",
+      userEmail: "self@example.com",
+    };
+
+    const { queryByRole } = renderComponent({ user: selfUser });
+    expect(queryByRole("button")).toBeNull();
+  });
 });

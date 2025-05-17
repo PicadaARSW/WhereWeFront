@@ -216,3 +216,6 @@ export default function App() {
     </AuthContext.Provider>
   );
 }
+
+// Export getScreens for testing
+export { getScreens };

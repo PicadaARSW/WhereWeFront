@@ -71,17 +71,21 @@ const EditProfileScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Editar Perfil</Text>
+    <View style={styles.container} testID="edit-profile-screen">
+      <Text style={styles.title} testID="profile-title">
+        Editar Perfil
+      </Text>
       <TouchableOpacity
         style={styles.button}
         onPress={handleEditProfilePicture}
+        testID="edit-picture-button"
       >
         <Text style={styles.buttonText}>Editar Foto de Perfil</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.button, styles.deleteButton]}
         onPress={handleDeleteAccount}
+        testID="delete-account-button"
       >
         <Text style={styles.buttonText}>Eliminar Cuenta</Text>
       </TouchableOpacity>
@@ -92,6 +96,7 @@ const EditProfileScreen = ({ navigation }) => {
         message={alertConfig.message}
         buttons={alertConfig.buttons}
         onClose={() => setAlertVisible(false)}
+        testID="custom-alert-component"
       />
     </View>
   );

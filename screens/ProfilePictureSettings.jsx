@@ -53,18 +53,24 @@ const ProfilePictureSettings = ({ navigation }) => {
     <TouchableOpacity
       style={styles.imageContainer}
       onPress={() => updateProfilePicture(`profile${index + 1}.png`)}
+      testID={`profile-picture-${index + 1}`}
     >
-      <Image source={item} style={styles.image} />
+      <Image
+        source={item}
+        style={styles.image}
+        testID={`profile-image-${index + 1}`}
+      />
     </TouchableOpacity>
   );
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="profile-picture-settings-container">
       <FlatList
         data={profilePictures}
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
         numColumns={2}
+        testID="profile-pictures-list"
       />
     </View>
   );

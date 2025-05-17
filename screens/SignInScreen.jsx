@@ -46,12 +46,17 @@ const SignInScreen = (props) => {
       <Image
         source={require("../assets/WhereWeImg.jpg")}
         style={styles.backgroundImage}
+        testID="background-image"
       />
-      <Title style={styles.mainTitle}>Where We!</Title>
-      <Card style={styles.card}>
+      <Title style={styles.mainTitle} testID="main-title">
+        Where We!
+      </Title>
+      <Card style={styles.card} testID="card">
         <Card.Content>
-          <Title style={styles.welcomeTitle}>Bienvenido</Title>
-          <Paragraph style={styles.paragraphText}>
+          <Title style={styles.welcomeTitle} testID="welcome-title">
+            Bienvenido
+          </Title>
+          <Paragraph style={styles.paragraphText} testID="welcome-paragraph">
             Inicio de Sesión en WhereWe!
           </Paragraph>
         </Card.Content>
@@ -61,6 +66,7 @@ const SignInScreen = (props) => {
               mode="contained"
               style={styles.signInButton}
               onPress={_signInAsync}
+              testID="sign-in-button"
             >
               Iniciar Sesión
             </Button>

@@ -14,4 +14,22 @@ module.exports = {
     "^.+\\.(js|jsx)$": "babel-jest",
   },
   testEnvironment: "node",
+  collectCoverageFrom: [
+    "**/*.{js,jsx}",
+    "!**/node_modules/**",
+    "!**/coverage/**",
+    "!**/babel.config.js",
+    "!**/jest.setup.js",
+    "!**/jest.config.js",
+    "!**/.expo/**",
+    "!**/index.js",
+    "!**/screens/GroupMapScreen.jsx",
+  ],
+  coverageReporters: ["text", "lcov"],
+  coveragePathIgnorePatterns: [
+    "/node_modules/",
+    "/jest",
+    "index.js",
+    "screens/GroupMapScreen.jsx",
+  ],
 };

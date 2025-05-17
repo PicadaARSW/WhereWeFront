@@ -166,7 +166,11 @@ const GroupDetailScreenContent = ({ route }) => {
     <>
       <ScrollView style={styles.container}>
         {loading ? (
-          <ActivityIndicator size="large" color="#276b80" />
+          <ActivityIndicator
+            size="large"
+            color="#276b80"
+            testID="loading-indicator"
+          />
         ) : (
           <View style={styles.groupInfo}>
             <View style={styles.headerContainer}>

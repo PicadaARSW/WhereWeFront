@@ -232,7 +232,7 @@ const HomeComponent = () => {
 
     try {
       const response = await ApiClient("groups/api/v1/groups", "POST", {
-        admin: userContext?.id,
+        admin: userContext?.user?.id,
         nameGroup: nameGroup,
       });
 
@@ -278,7 +278,7 @@ const HomeComponent = () => {
 
     try {
       const response = await ApiClient(
-        `groups/api/v1/groups/join/${groupCode}/${userContext?.id}`,
+        `groups/api/v1/groups/join/${groupCode}/${userContext?.user?.id}`,
         "POST"
       );
 
@@ -316,6 +316,7 @@ const HomeComponent = () => {
 
       {loading ? (
         <ActivityIndicator
+          testID="loading-indicator"
           color={Platform.OS === "android" ? "#276b80" : undefined}
           size="large"
         />
@@ -336,10 +337,11 @@ const HomeComponent = () => {
               real.
             </Text>
             <TouchableOpacity
+              testID="join-group-btn"
               style={styles.joinGroup}
               onPress={() => setIsJoinModalVisible(true)}
             >
-              <Text style={styles.buttonText}>Únete a un grupo</Text>
+              <Text style={styles.buttonText}>Unirse a grupo</Text>
             </TouchableOpacity>
           </View>
 
@@ -353,10 +355,11 @@ const HomeComponent = () => {
               privado.
             </Text>
             <TouchableOpacity
+              testID="create-group-btn"
               style={styles.createButton}
               onPress={() => setIsModalVisible(true)}
             >
-              <Text style={styles.createButtonText}>Crea un grupo</Text>
+              <Text style={styles.createButtonText}>Crear grupo</Text>
             </TouchableOpacity>
           </View>
 
@@ -367,7 +370,7 @@ const HomeComponent = () => {
             visible={isJoinModalVisible}
             onRequestClose={() => setIsJoinModalVisible(false)}
           >
-            <View style={styles.modalContainer}>
+            <View testID="join-group-modal" style={styles.modalContainer}>
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>
                   Ingresa el código del grupo
@@ -379,6 +382,7 @@ const HomeComponent = () => {
                   onChangeText={setGroupCode}
                 />
                 <TouchableOpacity
+                  testID="join-group-button"
                   style={styles.button}
                   onPress={handleJoinGroup}
                 >
@@ -401,7 +405,7 @@ const HomeComponent = () => {
             visible={isModalVisible}
             onRequestClose={() => setIsModalVisible(false)}
           >
-            <View style={styles.modalContainer}>
+            <View testID="create-group-modal" style={styles.modalContainer}>
               <View style={styles.modalContent}>
                 <Text style={styles.modalTitle}>
                   Ingresa el nombre del grupo
@@ -413,6 +417,7 @@ const HomeComponent = () => {
                   onChangeText={setNameGroup}
                 />
                 <TouchableOpacity
+                  testID="create-group-button"
                   style={styles.button}
                   onPress={handleCreateGroup}
                 >
@@ -420,7 +425,7 @@ const HomeComponent = () => {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.button}
-                  onPress={() => setIsModalVisible(false)} // Close modal without creating
+                  onPress={() => setIsModalVisible(false)}
                 >
                   <Text style={styles.buttonText}>Cancelar</Text>
                 </TouchableOpacity>

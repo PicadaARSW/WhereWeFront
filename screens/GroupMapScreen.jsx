@@ -650,22 +650,19 @@ const GroupMapScreen = ({ route, navigation }) => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#276b80" />
-        <Text style={styles.loadingText}>{connectionStatus}</Text>
-      </View>
-    );
-  }
-
-  if (errorMessage) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Error: {errorMessage}</Text>
-        <TouchableOpacity
-          style={styles.retryButton}
-          onPress={() => navigation.replace("GroupMapScreen", { groupId })}
-        >
-          <Text style={styles.retryButtonText}>Reintentar</Text>
-        </TouchableOpacity>
+        <ActivityIndicator
+          size="large"
+          color="#276b80"
+          testID="loading-indicator"
+        />
+        <Text style={styles.loadingText} testID="connection-status">
+          {connectionStatus}
+        </Text>
+        {errorMessage && (
+          <Text style={styles.errorText} testID="error-message">
+            {errorMessage}
+          </Text>
+        )}
       </View>
     );
   }
@@ -678,10 +675,13 @@ const GroupMapScreen = ({ route, navigation }) => {
         initialRegion={initialRegion}
         provider={PROVIDER_GOOGLE}
         showsUserLocation={false}
-        showsMyLocationButton={false}
-        showsCompass={true}
-        showsScale={true}
-        rotateEnabled={true}
+        followsUserLocation={true}
+        onPress={() => {
+          setShowUserCard(false);
+          if (tempMarker) setTempMarker(null);
+        }}
+        onLongPress={(e) => handleAddFavoritePlace()}
+        testID="map"
       >
         {Object.entries(locations).map(([locUserId, location]) => (
           <React.Fragment key={locUserId}>
@@ -789,18 +789,21 @@ const GroupMapScreen = ({ route, navigation }) => {
         <TouchableOpacity
           style={styles.mapControlButton}
           onPress={centerMapOnUser}
+          testID="center-on-user-button"
         >
           <Text style={styles.mapControlIcon}>📍</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.mapControlButton}
           onPress={centerMapOnAll}
+          testID="center-all-button"
         >
           <Text style={styles.mapControlIcon}>👥</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.mapControlButton}
           onPress={handleAddFavoritePlace}
+          testID="add-place-button"
         >
           <Text style={styles.mapControlIcon}>⭐</Text>
         </TouchableOpacity>
@@ -808,6 +811,7 @@ const GroupMapScreen = ({ route, navigation }) => {
           <TouchableOpacity
             style={styles.mapControlButton}
             onPress={confirmMarkerPosition}
+            testID="confirm-place-button"
           >
             <Text style={styles.mapControlIcon}>✔️</Text>
           </TouchableOpacity>
@@ -823,9 +827,10 @@ const GroupMapScreen = ({ route, navigation }) => {
               : styles.trackingButtonInactive,
           ]}
           onPress={toggleTracking}
+          testID="tracking-button"
         >
           <Text style={styles.trackingButtonText}>
-            {tracking ? "Detener ubicación en vivo" : "Compartir mi ubicación"}
+            {tracking ? "Detener Ubicación" : "Compartir Ubicación"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -842,7 +847,7 @@ const GroupMapScreen = ({ route, navigation }) => {
           onPress={() => setShowUserCard(false)}
         >
           <View style={styles.userCardContainer}>
-            <Card style={styles.userCard}>
+            <Card style={styles.userCard} testID="user-card">
               <Card.Title
                 title={
                   userMetadata[selectedUser]?.name ||
@@ -919,6 +924,7 @@ const GroupMapScreen = ({ route, navigation }) => {
         transparent={true}
         visible={showPlaceModal}
         onRequestClose={() => setShowPlaceModal(false)}
+        testID="place-modal"
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
